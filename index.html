@@ -361,17 +361,20 @@ const LIB = {
   crunch: {
     name:"크런치", target:"20회",
     cautions:["복근에 긴장 지속하기","허리는 바닥에 닿게 하기","시선은 배꼽, 턱은 내리기","내려오면서 긴장 풀지 않기"],
-    checklist:null, videoId:null, query:"크런치 운동 정확한 자세"
+    checklist:["동작 내내 복근에 긴장을 유지하였나요?","허리가 바닥에서 뜨지 않았나요?","시선을 배꼽 쪽으로 두고 턱을 당겼나요?","정해진 횟수를 다 수행하였나요?","정해진 횟수를 모두 정확한 자세로 달성하였나요?"],
+    videoId:null, query:"크런치 운동 정확한 자세"
   },
   widesquat: {
     name:"점프 와이드 스쿼트", target:"15회",
     cautions:["발을 넓게(약 160도) 벌리기","내려갈 때 무릎 90도 유지하기","무릎이 발 앞으로 나오지 않게 하기","엉덩이를 뒤로 빼고 실시하기","착지는 앞꿈치로 하기"],
-    checklist:null, videoId:"0LSfy60yRpM", query:"점프 와이드 스쿼트 운동 자세"
+    checklist:["발을 어깨너비보다 넓게(약 160도) 벌렸나요?","내려갈 때 무릎이 90도가 되도록 앉았나요?","무릎이 발끝보다 앞으로 나오지 않았나요?","엉덩이를 뒤로 빼며 앉았나요?","점프 후 착지를 앞꿈치로 하였나요?"],
+    videoId:"0LSfy60yRpM", query:"점프 와이드 스쿼트 운동 자세"
   },
   plank: {
     name:"플랭크", target:"30초",
     cautions:["어깨너비만큼 팔꿈치로 지탱하기","엉덩이·허리를 지면과 수평으로 유지하기","귀-어깨-엉덩이-발목이 일직선 되게 하기"],
-    checklist:null, videoId:"6dk_g8s2mRk", query:"플랭크 운동 자세"
+    checklist:["팔꿈치를 어깨너비만큼 벌려 지탱하였나요?","엉덩이와 허리가 지면과 수평을 이루었나요?","귀-어깨-엉덩이-발목이 일직선을 이루었나요?","정해진 시간을 끝까지 유지하였나요?","정해진 시간 동안 자세가 무너지지 않았나요?"],
+    videoId:"6dk_g8s2mRk", query:"플랭크 운동 자세"
   },
   scissor: {
     name:"가위차기", target:"20회",
@@ -386,7 +389,8 @@ const LIB = {
   pushup: {
     name:"푸쉬업(무릎대고)", target:"15회",
     cautions:["손은 어깨너비로 위치시키기","복근·엉덩이·허벅지에 힘주기","끝까지 내려갔다가 올라오기","엉덩이·허리를 너무 낮거나 높게 하지 않기"],
-    checklist:null, videoId:null, query:"무릎대고 푸쉬업 자세"
+    checklist:["손을 어깨너비로 바닥에 짚었나요?","복근과 엉덩이에 힘을 주어 몸을 지탱하였나요?","팔꿈치를 끝까지 굽혔다가 올라왔나요?","정해진 횟수를 다 수행하였나요?","정해진 횟수를 모두 정확한 자세로 달성하였나요?"],
+    videoId:null, query:"무릎대고 푸쉬업 자세"
   },
   superman: {
     name:"슈퍼맨", target:"15회",
@@ -522,7 +526,7 @@ const PRESETS = {
   "4차시":["jjack","widesquat","armwalk","plank","rtwist"],
   "5차시":["jjack","armwalk","burpee","plankjack","rtwist"]
 };
-const EVALUABLE = ["jjack","armwalk","burpee","plankjack","rtwist"]; // 동료평가 체크리스트가 있는 5개 핵심 종목
+const EVALUABLE = ["jjack","widesquat","plank","crunch","pushup","burpee","armwalk","plankjack","rtwist"]; // 동료평가 체크리스트가 있는 종목 (1차시 6종목 포함)
 
 // "오늘의 운동" 타바타 프리셋 (1set: 20초 운동 → 10초 휴식, 원본 학습지 그대로 반영)
 const TABATA_PRESETS = {
@@ -603,15 +607,17 @@ let state = {
   teacherCustom: {},    // {exId: reps}
   timer: null,          // {phase:'work'|'rest', remaining, setIdx, intervalId, running}
 
-  // 기록 대결
-  recordExercise: "burpee",
+  // 기록 대결 (1차시 서킷 크로스핏 스타일 완주 기록)
   recordName: "",
-  recordClass: "",
-  recordValue: "",
-  recordUnit: "회",
-  leaderboardCache: {},  // {exerciseId: [{student_name, class_group, record_value, record_unit, created_at}, ...]}
+  recordBan: "1",
+  recordBeon: "1",
+  recordMin: "",
+  recordSec: "",
+  leaderboardCache: null,  // [{student_name, class_group, record_value, created_at}, ...]
   rtSubscribed: false
 };
+const RECORD_EXERCISE_ID = "circuit_1cha";
+const RECORD_EXERCISE_NAME = "1차시 서킷 트레이닝(전체 6종목 완주)";
 
 function setsCountOf(v){
   return Array.isArray(v) ? v.length : (typeof v === "number" ? v : 1);
@@ -1302,18 +1308,18 @@ function renderTeacherTab(){
 /* =========================================================
    기록 대결 (Supabase 실시간 리더보드)
 ========================================================= */
-async function fetchLeaderboard(exerciseId){
+async function fetchLeaderboard(){
   if(!sb) return;
   try{
     const { data, error } = await sb
       .from("wod_leaderboard")
       .select("*")
       .eq("wod_date", todayStr())
-      .eq("exercise_id", exerciseId)
-      .order("record_value", { ascending:false })
-      .limit(20);
+      .eq("exercise_id", RECORD_EXERCISE_ID)
+      .order("record_value", { ascending:true })
+      .limit(30);
     if(error){ console.error(error); return; }
-    state.leaderboardCache[exerciseId] = data || [];
+    state.leaderboardCache = data || [];
     if(state.tab === "record") render();
   }catch(e){ console.error(e); }
 }
@@ -1324,38 +1330,45 @@ function subscribeRealtimeOnce(){
   sb.channel("wod-leaderboard-changes")
     .on("postgres_changes", { event:"INSERT", schema:"public", table:"wod_leaderboard" }, (payload)=>{
       const row = payload.new;
-      if(row.wod_date !== todayStr()) return;
-      const list = state.leaderboardCache[row.exercise_id] || [];
+      if(row.wod_date !== todayStr() || row.exercise_id !== RECORD_EXERCISE_ID) return;
+      const list = state.leaderboardCache || [];
       list.push(row);
-      list.sort((a,b)=> b.record_value - a.record_value);
-      state.leaderboardCache[row.exercise_id] = list.slice(0,20);
-      if(state.tab === "record" && state.recordExercise === row.exercise_id){
-        showToast(`${row.student_name} 님이 새 기록을 등록했어요 🔥`);
-      }
+      list.sort((a,b)=> a.record_value - b.record_value);
+      state.leaderboardCache = list.slice(0,30);
+      showToast(`${row.student_name} 님이 새 완주 기록을 등록했어요 🔥`);
     })
     .subscribe();
 }
 
+function formatSecToClock(totalSec){
+  const m = Math.floor(totalSec/60);
+  const s = totalSec % 60;
+  return `${m}분 ${String(s).padStart(2,"0")}초`;
+}
+
 async function submitRecord(){
   if(!sb){ showToast("Supabase 연결에 문제가 있어요"); return; }
-  if(!state.recordName || !state.recordValue){
-    showToast("이름과 기록을 입력해 주세요"); return;
+  const min = Number(state.recordMin) || 0;
+  const sec = Number(state.recordSec) || 0;
+  const totalSec = min*60 + sec;
+  if(!state.recordName || totalSec<=0){
+    showToast("이름과 완주 기록(분/초)을 입력해 주세요"); return;
   }
-  const ex = LIB[state.recordExercise];
+  const classGroup = `1학년 ${state.recordBan}반 ${state.recordBeon}번`;
   const payload = {
     wod_date: todayStr(),
     wod_title: state.wod.title,
-    exercise_id: state.recordExercise,
-    exercise_name: ex.name,
+    exercise_id: RECORD_EXERCISE_ID,
+    exercise_name: RECORD_EXERCISE_NAME,
     student_name: state.recordName,
-    class_group: state.recordClass || null,
-    record_value: Number(state.recordValue),
-    record_unit: state.recordUnit
+    class_group: classGroup,
+    record_value: totalSec,
+    record_unit: "초"
   };
   const { error } = await sb.from("wod_leaderboard").insert(payload);
   if(error){ console.error(error); showToast("등록 중 오류가 발생했어요"); return; }
   showToast("기록이 등록됐어요! 실시간 반영 🔥");
-  state.recordValue = "";
+  state.recordMin = ""; state.recordSec = "";
   render();
 }
 
@@ -1363,9 +1376,9 @@ function renderRecordTab(){
   subscribeRealtimeOnce();
   const box = document.createElement("div");
   const eyebrow=document.createElement("div"); eyebrow.className="eyebrow"; eyebrow.textContent="Finisher · 정리운동 기록 대결";
-  const h1=document.createElement("div"); h1.className="h1"; h1.textContent="전교생 기록 대결";
+  const h1=document.createElement("div"); h1.className="h1"; h1.textContent="전교생 기록 대결 - 1차시 서킷";
   const sub=document.createElement("div"); sub.className="sub";
-  sub.textContent="정리운동 단계에서 종목을 하나 골라 자신의 기록을 등록해 보세요. 다른 반, 다른 학생의 기록이 실시간으로 함께 올라옵니다.";
+  sub.textContent="정리운동 단계에서 오늘 1차시 서킷 트레이닝 6종목을 모두 마친 완주 시간을 등록해 보세요. 다른 반, 다른 학생의 기록이 실시간으로 함께 올라옵니다.";
   box.appendChild(eyebrow); box.appendChild(h1); box.appendChild(sub);
 
   const rtBadge = document.createElement("div");
@@ -1376,73 +1389,71 @@ function renderRecordTab(){
   const form = document.createElement("div");
   form.className="record-form";
 
-  const exField = document.createElement("div"); exField.className="field";
-  exField.innerHTML = `<label>종목 선택</label>`;
-  const sel = document.createElement("select");
-  Object.entries(LIB).forEach(([id,ex])=>{
-    const opt=document.createElement("option"); opt.value=id; opt.textContent=ex.name;
-    if(id===state.recordExercise) opt.selected=true;
-    sel.appendChild(opt);
-  });
-  sel.onchange = (e)=>{
-    state.recordExercise = e.target.value;
-    if(!state.leaderboardCache[state.recordExercise]) fetchLeaderboard(state.recordExercise);
-    render();
-  };
-  exField.appendChild(sel);
-  form.appendChild(exField);
-
-  const row = document.createElement("div"); row.className="row2";
-  row.innerHTML = `
-    <div class="field"><label>이름</label><input id="recNameInput" type="text" placeholder="이름 입력" value="${state.recordName}"/></div>
-    <div class="field"><label>반 / 모둠</label><input id="recClassInput" type="text" placeholder="예: 1학년 6반" value="${state.recordClass}"/></div>
-  `;
-  form.appendChild(row);
-
-  const row2 = document.createElement("div"); row2.className="row2";
-  row2.innerHTML = `
-    <div class="field"><label>기록</label><input id="recValueInput" type="number" placeholder="숫자만 입력" value="${state.recordValue}"/></div>
-    <div class="field"><label>단위</label>
-      <select id="recUnitInput">
-        <option value="회" ${state.recordUnit==="회"?"selected":""}>회</option>
-        <option value="초" ${state.recordUnit==="초"?"selected":""}>초 (기록이 짧을수록 좋은 경우 참고용)</option>
-        <option value="kg" ${state.recordUnit==="kg"?"selected":""}>kg</option>
+  const banBeonRow = document.createElement("div"); banBeonRow.className="row2";
+  banBeonRow.innerHTML = `
+    <div class="field"><label>반</label>
+      <select id="recBanInput">
+        ${Array.from({length:12},(_,i)=>i+1).map(b=>`<option value="${b}" ${String(b)===state.recordBan?"selected":""}>1학년 ${b}반</option>`).join("")}
+      </select>
+    </div>
+    <div class="field"><label>번호</label>
+      <select id="recBeonInput">
+        ${Array.from({length:31},(_,i)=>i+1).map(n=>`<option value="${n}" ${String(n)===state.recordBeon?"selected":""}>${n}번</option>`).join("")}
       </select>
     </div>
   `;
-  form.appendChild(row2);
+  form.appendChild(banBeonRow);
+
+  const nameField = document.createElement("div"); nameField.className="field";
+  nameField.innerHTML = `<label>이름</label><input id="recNameInput" type="text" placeholder="이름 입력" value="${state.recordName}"/>`;
+  form.appendChild(nameField);
+
+  const timeField = document.createElement("div"); timeField.className="field";
+  timeField.innerHTML = `<label>완주 기록 (1차시 6종목 전체를 마친 시간)</label>`;
+  const timeRow = document.createElement("div");
+  timeRow.style.display="flex"; timeRow.style.gap="10px"; timeRow.style.alignItems="center";
+  timeRow.innerHTML = `
+    <input id="recMinInput" type="number" min="0" placeholder="분" value="${state.recordMin}" style="flex:1;background:var(--bg-panel-2);border:1px solid var(--line);border-radius:8px;padding:11px 12px;color:var(--text);font-size:14px;"/>
+    <span style="color:var(--muted2);font-weight:700;">분</span>
+    <input id="recSecInput" type="number" min="0" max="59" placeholder="초" value="${state.recordSec}" style="flex:1;background:var(--bg-panel-2);border:1px solid var(--line);border-radius:8px;padding:11px 12px;color:var(--text);font-size:14px;"/>
+    <span style="color:var(--muted2);font-weight:700;">초</span>
+  `;
+  timeField.appendChild(timeRow);
+  form.appendChild(timeField);
 
   const submitBtn = document.createElement("button");
-  submitBtn.className="btn btn-primary"; submitBtn.textContent="🔥 기록 등록하기";
+  submitBtn.className="btn btn-primary"; submitBtn.textContent="🔥 완주 기록 등록하기";
   submitBtn.onclick = submitRecord;
   form.appendChild(submitBtn);
   box.appendChild(form);
 
   setTimeout(()=>{
+    const ban=document.getElementById("recBanInput");
+    const beon=document.getElementById("recBeonInput");
     const n=document.getElementById("recNameInput");
-    const c=document.getElementById("recClassInput");
-    const v=document.getElementById("recValueInput");
-    const u=document.getElementById("recUnitInput");
+    const m=document.getElementById("recMinInput");
+    const s=document.getElementById("recSecInput");
+    if(ban) ban.onchange = e=>state.recordBan=e.target.value;
+    if(beon) beon.onchange = e=>state.recordBeon=e.target.value;
     if(n) n.oninput = e=>state.recordName=e.target.value;
-    if(c) c.oninput = e=>state.recordClass=e.target.value;
-    if(v) v.oninput = e=>state.recordValue=e.target.value;
-    if(u) u.onchange = e=>state.recordUnit=e.target.value;
+    if(m) m.oninput = e=>state.recordMin=e.target.value;
+    if(s) s.oninput = e=>state.recordSec=e.target.value;
   },0);
 
   const boardEyebrow=document.createElement("div"); boardEyebrow.className="eyebrow";
-  boardEyebrow.textContent = LIB[state.recordExercise].name + " · 실시간 순위 (많을수록 상위)";
+  boardEyebrow.textContent = "1차시 서킷 완주 기록 · 실시간 순위 (빠를수록 상위)";
   box.appendChild(boardEyebrow);
 
-  if(!state.leaderboardCache[state.recordExercise]){
-    fetchLeaderboard(state.recordExercise);
+  if(state.leaderboardCache === null){
+    fetchLeaderboard();
     const loading=document.createElement("div"); loading.className="empty"; loading.textContent="기록을 불러오는 중...";
     box.appendChild(loading);
     return box;
   }
 
-  const list = state.leaderboardCache[state.recordExercise];
+  const list = state.leaderboardCache;
   if(list.length === 0){
-    const empty=document.createElement("div"); empty.className="empty"; empty.textContent="아직 등록된 기록이 없어요. 첫 기록의 주인공이 되어 보세요!";
+    const empty=document.createElement("div"); empty.className="empty"; empty.textContent="아직 등록된 기록이 없어요. 첫 완주 기록의 주인공이 되어 보세요!";
     box.appendChild(empty);
     return box;
   }
@@ -1454,7 +1465,7 @@ function renderRecordTab(){
     row.innerHTML = `
       <div class="lb-rank">${i+1}</div>
       <div class="lb-name">${r.student_name}<span class="lb-class">${r.class_group || ""}</span></div>
-      <div class="lb-value">${r.record_value}${r.record_unit}</div>
+      <div class="lb-value">${formatSecToClock(r.record_value)}</div>
     `;
     board.appendChild(row);
   });
