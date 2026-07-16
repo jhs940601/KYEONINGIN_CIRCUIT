@@ -207,8 +207,8 @@ body{
 .timer-phase.rest{background:rgba(62,207,142,.16);color:var(--good);}
 .timer-num{
   font-family:'Oswald',sans-serif;font-weight:700;
-  font-size:clamp(70px,20vw,140px);line-height:1;
-  margin:4px 0 6px;
+  font-size:clamp(100px,32vw,220px);line-height:1;
+  margin:10px 0 10px;
   font-variant-numeric:tabular-nums;
 }
 .timer-num.work{color:var(--accent);}
@@ -1089,16 +1089,6 @@ function renderTabataOverlay(){
     pills.appendChild(p);
   }
   body.appendChild(pills);
-
-  if(ex.videoId){
-    const v = document.createElement("div"); v.className="follow-video";
-    v.innerHTML = `<iframe src="https://www.youtube.com/embed/${ex.videoId}" title="${ex.name}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-    body.appendChild(v);
-  } else {
-    const v = document.createElement("div"); v.className="follow-video"; v.style.paddingTop="0"; v.style.background="transparent";
-    v.appendChild(renderVideoBlock(ex));
-    body.appendChild(v);
-  }
 
   const cautions = document.createElement("ul");
   cautions.className="cautions follow-cautions";
