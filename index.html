@@ -265,6 +265,21 @@ body{
 .lib-item .name{flex:1;font-size:14px;font-weight:600;}
 .lib-item input[type=text]{width:80px;background:var(--bg-panel-2);border:1px solid var(--line);border-radius:6px;padding:6px 8px;color:var(--text);font-size:13px;}
 
+/* ---------- 동료평가 제출 로스터 ---------- */
+.roster-wrap{background:var(--bg-panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:26px;}
+.roster-board{display:flex;flex-direction:column;gap:8px;max-height:420px;overflow-y:auto;}
+.roster-row{display:flex;align-items:center;gap:10px;}
+.roster-ban-label{
+  width:40px;flex-shrink:0;font-family:'Oswald',sans-serif;font-weight:700;font-size:13px;color:var(--muted2);
+}
+.roster-chips{display:flex;flex-wrap:wrap;gap:5px;}
+.roster-chip{
+  width:26px;height:26px;border-radius:6px;background:var(--bg-panel-2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted2);font-weight:600;
+  cursor:default;
+}
+.roster-chip.on{background:var(--good);border-color:var(--good);color:#0a0b0c;font-weight:800;}
+
 .empty{
   text-align:center;color:var(--muted2);padding:50px 20px;font-size:14px;
   background:var(--bg-panel);border:1px dashed var(--line);border-radius:var(--radius);
@@ -333,6 +348,29 @@ let sb = null;
 try{
   sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }catch(e){ console.error("Supabase 초기화 실패", e); }
+
+/* =========================================================
+   구글 시트 연동 (선택 사항)
+   -----------------------------------------------------------
+   아래 GOOGLE_SHEET_WEBAPP_URL에 Google Apps Script 웹 앱 URL을
+   붙여넣으면, 기록 대결 탭에 등록되는 모든 기록이 Supabase와
+   동시에 구글 시트에도 한 줄씩 자동으로 기록됩니다.
+   설정 방법은 대화 내 안내를 참고하세요. 비워두면(기본값) 이
+   기능은 자동으로 건너뜁니다.
+========================================================= */
+const GOOGLE_SHEET_WEBAPP_URL = ""; // 예: "https://script.google.com/macros/s/AKfycb.../exec"
+
+function sendToGoogleSheet(row){
+  if(!GOOGLE_SHEET_WEBAPP_URL) return;
+  try{
+    fetch(GOOGLE_SHEET_WEBAPP_URL, {
+      method:"POST",
+      mode:"no-cors",
+      headers:{ "Content-Type":"text/plain;charset=utf-8" },
+      body: JSON.stringify(row)
+    }).catch(e=>console.error("구글 시트 전송 실패", e));
+  }catch(e){ console.error("구글 시트 전송 실패", e); }
+}
 
 /* =========================================================
    데이터: 서킷 트레이닝 종목 라이브러리
@@ -612,11 +650,15 @@ let state = {
   followMode: false,
   followIdx: 0,
   openVideo: {},        // {exId: bool}
-  evalPerformer:"", evalObserver:"",
+  evalPerformer:"",
+  evalObserverBan:"1", evalObserverBeon:"1", evalObserverName:"", evalCha:"1",
+  rosterCha:"1",
+  evalSubmissions: null, // 교사모드 동료평가 제출 현황 캐시
   evalAnswers:{},        // {exId:{qIdx:'yes'|'no'}}
   toast:null,
   teacherCustom: {},    // {exId: reps}
   timer: null,          // {phase:'work'|'rest', remaining, setIdx, intervalId, running}
+  followTimerConfig: null, // {work, rest} - 팔로우 모드에서 타이머 사용 시 설정 (null이면 영상 모드)
 
   // 기록 대결 (1차시 서킷 크로스핏 스타일 AMRAP 기록)
   recordName: "",
@@ -779,15 +821,43 @@ function renderWodTab(){
   `;
   const btnRow = document.createElement("div");
   btnRow.style.marginTop="16px";
-  const startBtn = document.createElement("button");
-  startBtn.className="btn btn-primary";
-  startBtn.textContent="▶ 다함께 시작 (팔로우 모드)";
-  startBtn.onclick = ()=>{
-    state.followMode=true; state.followIdx=0;
-    if(state.wod.tabata){ initTimerForCurrentExercise(); }
-    render();
-  };
-  btnRow.appendChild(startBtn);
+  btnRow.style.display="flex";
+  btnRow.style.gap="10px";
+  btnRow.style.flexWrap="wrap";
+
+  if(isTabata){
+    const startBtn = document.createElement("button");
+    startBtn.className="btn btn-primary";
+    startBtn.textContent="▶ 다함께 시작 (팔로우 모드)";
+    startBtn.onclick = ()=>{
+      state.followMode=true; state.followIdx=0;
+      state.followTimerConfig = state.wod.tabata;
+      initTimerForCurrentExercise();
+      render();
+    };
+    btnRow.appendChild(startBtn);
+  } else {
+    const videoBtn = document.createElement("button");
+    videoBtn.className="btn btn-ghost";
+    videoBtn.textContent="▶ 영상 보기 모드";
+    videoBtn.onclick = ()=>{
+      state.followMode=true; state.followIdx=0;
+      state.followTimerConfig = null;
+      render();
+    };
+    btnRow.appendChild(videoBtn);
+
+    const timerBtn = document.createElement("button");
+    timerBtn.className="btn btn-primary";
+    timerBtn.textContent="⏱ 타이머 모드 (30초 운동/10초 휴식)";
+    timerBtn.onclick = ()=>{
+      state.followMode=true; state.followIdx=0;
+      state.followTimerConfig = { work:30, rest:10 };
+      initTimerForCurrentExercise();
+      render();
+    };
+    btnRow.appendChild(timerBtn);
+  }
   hero.appendChild(btnRow);
   box.appendChild(hero);
 
@@ -885,7 +955,7 @@ function renderVideoBlock(ex){
    팔로우 모드 (다함께 시작) - 분기
 ========================================================= */
 function renderFollowOverlay(){
-  return state.wod.tabata ? renderTabataOverlay() : renderManualOverlay();
+  return state.followTimerConfig ? renderTabataOverlay() : renderManualOverlay();
 }
 
 /* ---- 타이머 관리 (타바타 프리셋 전용) ---- */
@@ -894,14 +964,14 @@ function clearTimerInterval(){
 }
 function initTimerForCurrentExercise(){
   const id = state.wod.ids[state.followIdx];
-  const setsVal = state.wod.setsMap[id];
+  const setsVal = getSetsInfoFor(id);
   clearTimerInterval();
   state.timer = {
     setIdx: 0,
     totalSets: setsCountOf(setsVal),
     setsVal,
     phase: "work",
-    remaining: state.wod.tabata.work,
+    remaining: state.followTimerConfig.work,
     running: true
   };
   state.timer.intervalId = setInterval(tabataTick, 1000);
@@ -924,14 +994,14 @@ function advanceTabataPhase(){
   if(!t) return;
   if(t.phase === "work"){
     t.phase = "rest";
-    t.remaining = state.wod.tabata.rest;
+    t.remaining = state.followTimerConfig.rest;
     return;
   }
   // rest finished -> next set or next exercise
   t.setIdx += 1;
   if(t.setIdx < t.totalSets){
     t.phase = "work";
-    t.remaining = state.wod.tabata.work;
+    t.remaining = state.followTimerConfig.work;
     return;
   }
   const id = state.wod.ids[state.followIdx];
@@ -945,6 +1015,7 @@ function advanceTabataPhase(){
     clearTimerInterval();
     state.timer = null;
     state.followMode = false;
+    state.followTimerConfig = null;
     showToast("오늘의 WOD 완료! 수고했어요 💪");
   }
 }
@@ -952,6 +1023,7 @@ function closeFollow(){
   clearTimerInterval();
   state.timer = null;
   state.followMode = false;
+  state.followTimerConfig = null;
   render();
 }
 
@@ -1068,7 +1140,7 @@ function renderManualOverlay(){
   top.innerHTML = `<div class="eyebrow" style="margin:0;">다함께 시작 · ${state.wod.title}</div>`;
   const closeBtn = document.createElement("button");
   closeBtn.className="follow-close"; closeBtn.textContent="닫기 ✕";
-  closeBtn.onclick = ()=>{ state.followMode=false; render(); };
+  closeBtn.onclick = closeFollow;
   top.appendChild(closeBtn);
   ov.appendChild(top);
 
@@ -1140,13 +1212,44 @@ function renderEvalTab(){
   names.className="row2";
   names.innerHTML = `
     <div class="field"><label>수행자 이름</label><input id="performerInput" type="text" placeholder="이름 입력" value="${state.evalPerformer}"/></div>
-    <div class="field"><label>관찰자 이름</label><input id="observerInput" type="text" placeholder="이름 입력" value="${state.evalObserver}"/></div>
+    <div class="field"><label>관찰자 이름</label><input id="observerNameInput" type="text" placeholder="이름 입력" value="${state.evalObserverName}"/></div>
   `;
   box.appendChild(names);
+
+  const obsClassRow = document.createElement("div");
+  obsClassRow.className="row2";
+  obsClassRow.innerHTML = `
+    <div class="field"><label>관찰자 반</label>
+      <select id="obsBanInput">
+        ${Array.from({length:12},(_,i)=>i+1).map(b=>`<option value="${b}" ${String(b)===state.evalObserverBan?"selected":""}>1학년 ${b}반</option>`).join("")}
+      </select>
+    </div>
+    <div class="field"><label>관찰자 번호</label>
+      <select id="obsBeonInput">
+        ${Array.from({length:30},(_,i)=>i+1).map(n=>`<option value="${n}" ${String(n)===state.evalObserverBeon?"selected":""}>${n}번</option>`).join("")}
+      </select>
+    </div>
+  `;
+  box.appendChild(obsClassRow);
+
+  const chaField = document.createElement("div"); chaField.className="field";
+  chaField.innerHTML = `<label>차시</label>
+    <select id="evalChaInput">
+      ${Array.from({length:10},(_,i)=>i+1).map(c=>`<option value="${c}" ${String(c)===state.evalCha?"selected":""}>${c}차시</option>`).join("")}
+    </select>`;
+  box.appendChild(chaField);
+
   setTimeout(()=>{
-    const p=document.getElementById("performerInput"), o=document.getElementById("observerInput");
+    const p=document.getElementById("performerInput");
+    const on=document.getElementById("observerNameInput");
+    const ob=document.getElementById("obsBanInput");
+    const obn=document.getElementById("obsBeonInput");
+    const ch=document.getElementById("evalChaInput");
     if(p) p.oninput = e=>state.evalPerformer=e.target.value;
-    if(o) o.oninput = e=>state.evalObserver=e.target.value;
+    if(on) on.oninput = e=>state.evalObserverName=e.target.value;
+    if(ob) ob.onchange = e=>state.evalObserverBan=e.target.value;
+    if(obn) obn.onchange = e=>state.evalObserverBeon=e.target.value;
+    if(ch) ch.onchange = e=>state.evalCha=e.target.value;
   },0);
 
   const evalIds = state.wod.ids.filter(id=>EVALUABLE.includes(id));
@@ -1185,17 +1288,20 @@ function renderEvalTab(){
   const submitBar=document.createElement("div"); submitBar.className="submit-bar";
   const submitBtn=document.createElement("button"); submitBtn.className="btn btn-primary"; submitBtn.textContent="동료평가 제출하기";
   submitBtn.onclick = async ()=>{
-    if(!state.evalPerformer || !state.evalObserver){
+    if(!state.evalPerformer || !state.evalObserverName){
       showToast("수행자·관찰자 이름을 입력해 주세요"); return;
     }
     const key = "peereval:" + todayStr() + ":" + Date.now();
     const payload = {
-      date: todayStr(), performer: state.evalPerformer, observer: state.evalObserver,
+      date: todayStr(), performer: state.evalPerformer,
+      observerName: state.evalObserverName,
+      observerBan: state.evalObserverBan, observerBeon: state.evalObserverBeon,
+      cha: state.evalCha,
       wodTitle: state.wod.title, answers: state.evalAnswers
     };
     await storeSet(key, payload, true);
     showToast("동료평가가 제출되었어요 ✅");
-    state.evalAnswers = {}; state.evalPerformer=""; state.evalObserver="";
+    state.evalAnswers = {}; state.evalPerformer=""; state.evalObserverName="";
     render();
   };
   submitBar.appendChild(submitBtn);
@@ -1207,6 +1313,90 @@ function renderEvalTab(){
 /* =========================================================
    교사 모드 탭
 ========================================================= */
+function renderEvalRoster(){
+  const wrap = document.createElement("div");
+  wrap.className="roster-wrap";
+
+  const headerRow = document.createElement("div");
+  headerRow.style.display="flex"; headerRow.style.justifyContent="space-between"; headerRow.style.alignItems="center"; headerRow.style.marginBottom="10px"; headerRow.style.flexWrap="wrap"; headerRow.style.gap="10px";
+  const title = document.createElement("div");
+  title.className="eyebrow"; title.style.margin="0";
+  title.textContent = "동료평가지 제출 현황 (관찰자 기준)";
+  headerRow.appendChild(title);
+
+  const rightControls = document.createElement("div");
+  rightControls.style.display="flex"; rightControls.style.gap="8px"; rightControls.style.alignItems="center";
+  const chaSel = document.createElement("select");
+  chaSel.id="rosterChaInput";
+  chaSel.style.cssText="background:var(--bg-panel-2);border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--text);font-size:13px;font-weight:700;";
+  for(let c=1;c<=10;c++){
+    const opt=document.createElement("option"); opt.value=c; opt.textContent=c+"차시";
+    if(String(c)===state.rosterCha) opt.selected=true;
+    chaSel.appendChild(opt);
+  }
+  chaSel.onchange = (e)=>{ state.rosterCha = e.target.value; render(); };
+  rightControls.appendChild(chaSel);
+  const refreshBtn = document.createElement("button");
+  refreshBtn.className="btn btn-ghost btn-sm";
+  refreshBtn.textContent="새로고침";
+  refreshBtn.onclick = ()=>{ state.evalSubmissions=null; render(); };
+  rightControls.appendChild(refreshBtn);
+  headerRow.appendChild(rightControls);
+  wrap.appendChild(headerRow);
+
+  if(state.evalSubmissions === null){
+    fetchEvalSubmissions();
+    const loading=document.createElement("div"); loading.className="empty"; loading.textContent="제출 현황을 불러오는 중...";
+    wrap.appendChild(loading);
+    return wrap;
+  }
+
+  const submissions = state.evalSubmissions.filter(s => String(s.cha||"1") === state.rosterCha);
+  const doneMap = {}; // "ban-beon" -> [{observerName, performer, wodTitle, createdAtKey}]
+  submissions.forEach(s=>{
+    const k = s.observerBan + "-" + s.observerBeon;
+    if(!doneMap[k]) doneMap[k]=[];
+    doneMap[k].push(s);
+  });
+
+  const countLine = document.createElement("div");
+  countLine.className="sub"; countLine.style.marginBottom="14px";
+  countLine.textContent = `${state.rosterCha}차시 · 총 ${submissions.length}건 제출됨 · 제출한 학생 ${Object.keys(doneMap).length}명 / 360명`;
+  wrap.appendChild(countLine);
+
+  const rosterBoard = document.createElement("div");
+  rosterBoard.className="roster-board";
+  for(let ban=1; ban<=12; ban++){
+    const row = document.createElement("div");
+    row.className="roster-row";
+    const label = document.createElement("div");
+    label.className="roster-ban-label";
+    label.textContent = ban+"반";
+    row.appendChild(label);
+    const chips = document.createElement("div");
+    chips.className="roster-chips";
+    for(let beon=1; beon<=30; beon++){
+      const key = ban+"-"+beon;
+      const subs = doneMap[key];
+      const chip = document.createElement("div");
+      chip.className = "roster-chip" + (subs ? " on" : "");
+      chip.textContent = beon;
+      if(subs){
+        const names = subs.map(s=>s.observerName).join(", ");
+        chip.title = `${ban}반 ${beon}번 (${names}) - ${subs.length}건 제출`;
+      } else {
+        chip.title = `${ban}반 ${beon}번 - 미제출`;
+      }
+      chips.appendChild(chip);
+    }
+    row.appendChild(chips);
+    rosterBoard.appendChild(row);
+  }
+  wrap.appendChild(rosterBoard);
+
+  return wrap;
+}
+
 function renderTeacherTab(){
   const box=document.createElement("div");
   const eyebrow=document.createElement("div"); eyebrow.className="eyebrow"; eyebrow.textContent="Teacher Mode";
@@ -1214,6 +1404,8 @@ function renderTeacherTab(){
   const sub=document.createElement("div"); sub.className="sub";
   sub.textContent="저장하면 모든 학생 화면의 '오늘의 WOD'가 바로 업데이트됩니다.";
   box.appendChild(eyebrow); box.appendChild(h1); box.appendChild(sub);
+
+  box.appendChild(renderEvalRoster());
 
   const eyebrow2=document.createElement("div"); eyebrow2.className="eyebrow"; eyebrow2.textContent="빠른 선택 (1~5차시 · 반복수 기반 서킷)";
   box.appendChild(eyebrow2);
@@ -1316,6 +1508,25 @@ function renderTeacherTab(){
 }
 
 /* =========================================================
+   교사 모드 - 동료평가지 제출 현황 수합
+========================================================= */
+async function fetchEvalSubmissions(){
+  if(!window.storage) return;
+  try{
+    const prefix = "peereval:" + todayStr() + ":";
+    const listRes = await window.storage.list(prefix, true);
+    const keys = (listRes && listRes.keys) || [];
+    const results = [];
+    for(const k of keys){
+      const r = await storeGet(k, true);
+      if(r) results.push(r);
+    }
+    state.evalSubmissions = results;
+    if(state.tab === "teacher") render();
+  }catch(e){ console.error(e); state.evalSubmissions = []; }
+}
+
+/* =========================================================
    기록 대결 (Supabase 실시간 리더보드)
 ========================================================= */
 async function fetchLeaderboard(){
@@ -1369,6 +1580,10 @@ async function submitRecord(){
   };
   const { error } = await sb.from("wod_leaderboard").insert(payload);
   if(error){ console.error(error); showToast("등록 중 오류가 발생했어요"); return; }
+  sendToGoogleSheet({
+    날짜: todayStr(), WOD: state.wod.title, 학번: classGroup,
+    이름: state.recordName, 기록_회: reps, 등록시각: new Date().toISOString()
+  });
   showToast("기록이 등록됐어요! 실시간 반영 🔥");
   state.recordReps = "";
   render();
@@ -1388,6 +1603,13 @@ function renderRecordTab(){
   rtBadge.innerHTML = `<span class="rt-dot"></span> ${sb ? "실시간 연결됨 (Supabase)" : "연결 안 됨"}`;
   box.appendChild(rtBadge);
 
+  if(!GOOGLE_SHEET_WEBAPP_URL){
+    const gsNote = document.createElement("div");
+    gsNote.className="sub"; gsNote.style.marginTop="-10px";
+    gsNote.textContent = "ℹ️ 구글 시트 연동 URL이 아직 설정되지 않았어요. 설정하면 기록이 구글 시트에도 자동 저장됩니다.";
+    box.appendChild(gsNote);
+  }
+
   const form = document.createElement("div");
   form.className="record-form";
 
@@ -1400,7 +1622,7 @@ function renderRecordTab(){
     </div>
     <div class="field"><label>번호</label>
       <select id="recBeonInput">
-        ${Array.from({length:31},(_,i)=>i+1).map(n=>`<option value="${n}" ${String(n)===state.recordBeon?"selected":""}>${n}번</option>`).join("")}
+        ${Array.from({length:30},(_,i)=>i+1).map(n=>`<option value="${n}" ${String(n)===state.recordBeon?"selected":""}>${n}번</option>`).join("")}
       </select>
     </div>
   `;
