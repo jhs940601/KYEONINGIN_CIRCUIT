@@ -54,18 +54,19 @@ body{
 .brand-mark img{width:100%;height:100%;object-fit:cover;display:block;}
 .brand-name{
   font-family:'Oswald',sans-serif;
-  letter-spacing:.06em;
-  font-size:17px;
+  letter-spacing:.04em;
+  font-size:19px;
+  font-weight:700;
   color:var(--text);
   text-transform:uppercase;
-  line-height:1.3;
+  line-height:1.35;
 }
 .brand-name .sub{
   display:block;
-  font-size:12px;
-  letter-spacing:.18em;
-  color:var(--muted2);
-  font-weight:500;
+  font-size:13px;
+  letter-spacing:.16em;
+  color:var(--accent2);
+  font-weight:700;
 }
 .brand-title{font-family:'Oswald',sans-serif;font-size:20px;font-weight:600;letter-spacing:.03em;}
 
@@ -303,7 +304,17 @@ body{
 @media(max-width:520px){
   .row2{grid-template-columns:1fr;}
   .hero-row{flex-direction:column;}
-  .tabs{width:100%;overflow-x:auto;}
+  .topbar{flex-direction:column;align-items:stretch;gap:16px;padding:10px 4px 18px;}
+  .brand{justify-content:flex-start;}
+  .brand-mark{width:58px;height:58px;border-width:2px;}
+  .brand-name{font-size:16px;}
+  .brand-name .sub{font-size:11px;}
+  .tabs{
+    width:100%;overflow-x:visible;
+    display:grid;grid-template-columns:repeat(2,1fr);gap:6px;
+    border-radius:14px;padding:6px;
+  }
+  .tab-btn{padding:10px 6px;font-size:12px;white-space:normal;line-height:1.3;}
 }
 </style>
 </head>
@@ -607,12 +618,11 @@ let state = {
   teacherCustom: {},    // {exId: reps}
   timer: null,          // {phase:'work'|'rest', remaining, setIdx, intervalId, running}
 
-  // 기록 대결 (1차시 서킷 크로스핏 스타일 완주 기록)
+  // 기록 대결 (1차시 서킷 크로스핏 스타일 AMRAP 기록)
   recordName: "",
   recordBan: "1",
   recordBeon: "1",
-  recordMin: "",
-  recordSec: "",
+  recordReps: "",
   leaderboardCache: null,  // [{student_name, class_group, record_value, created_at}, ...]
   rtSubscribed: false
 };
@@ -1316,7 +1326,7 @@ async function fetchLeaderboard(){
       .select("*")
       .eq("wod_date", todayStr())
       .eq("exercise_id", RECORD_EXERCISE_ID)
-      .order("record_value", { ascending:true })
+      .order("record_value", { ascending:false })
       .limit(30);
     if(error){ console.error(error); return; }
     state.leaderboardCache = data || [];
@@ -1333,26 +1343,18 @@ function subscribeRealtimeOnce(){
       if(row.wod_date !== todayStr() || row.exercise_id !== RECORD_EXERCISE_ID) return;
       const list = state.leaderboardCache || [];
       list.push(row);
-      list.sort((a,b)=> a.record_value - b.record_value);
+      list.sort((a,b)=> b.record_value - a.record_value);
       state.leaderboardCache = list.slice(0,30);
       showToast(`${row.student_name} 님이 새 완주 기록을 등록했어요 🔥`);
     })
     .subscribe();
 }
 
-function formatSecToClock(totalSec){
-  const m = Math.floor(totalSec/60);
-  const s = totalSec % 60;
-  return `${m}분 ${String(s).padStart(2,"0")}초`;
-}
-
 async function submitRecord(){
   if(!sb){ showToast("Supabase 연결에 문제가 있어요"); return; }
-  const min = Number(state.recordMin) || 0;
-  const sec = Number(state.recordSec) || 0;
-  const totalSec = min*60 + sec;
-  if(!state.recordName || totalSec<=0){
-    showToast("이름과 완주 기록(분/초)을 입력해 주세요"); return;
+  const reps = Number(state.recordReps);
+  if(!state.recordName || !reps || reps<=0){
+    showToast("이름과 총 수행 횟수를 입력해 주세요"); return;
   }
   const classGroup = `1학년 ${state.recordBan}반 ${state.recordBeon}번`;
   const payload = {
@@ -1362,13 +1364,13 @@ async function submitRecord(){
     exercise_name: RECORD_EXERCISE_NAME,
     student_name: state.recordName,
     class_group: classGroup,
-    record_value: totalSec,
-    record_unit: "초"
+    record_value: reps,
+    record_unit: "회"
   };
   const { error } = await sb.from("wod_leaderboard").insert(payload);
   if(error){ console.error(error); showToast("등록 중 오류가 발생했어요"); return; }
   showToast("기록이 등록됐어요! 실시간 반영 🔥");
-  state.recordMin = ""; state.recordSec = "";
+  state.recordReps = "";
   render();
 }
 
@@ -1378,7 +1380,7 @@ function renderRecordTab(){
   const eyebrow=document.createElement("div"); eyebrow.className="eyebrow"; eyebrow.textContent="Finisher · 정리운동 기록 대결";
   const h1=document.createElement("div"); h1.className="h1"; h1.textContent="전교생 기록 대결 - 1차시 서킷";
   const sub=document.createElement("div"); sub.className="sub";
-  sub.textContent="정리운동 단계에서 오늘 1차시 서킷 트레이닝 6종목을 모두 마친 완주 시간을 등록해 보세요. 다른 반, 다른 학생의 기록이 실시간으로 함께 올라옵니다.";
+  sub.textContent="정리운동 단계에서 정해진 시간 동안 1차시 서킷 트레이닝 6종목을 최대한 많이 반복한 총 횟수를 등록해 보세요. 다른 반, 다른 학생의 기록이 실시간으로 함께 올라옵니다.";
   box.appendChild(eyebrow); box.appendChild(h1); box.appendChild(sub);
 
   const rtBadge = document.createElement("div");
@@ -1409,20 +1411,18 @@ function renderRecordTab(){
   form.appendChild(nameField);
 
   const timeField = document.createElement("div"); timeField.className="field";
-  timeField.innerHTML = `<label>완주 기록 (1차시 6종목 전체를 마친 시간)</label>`;
+  timeField.innerHTML = `<label>제한시간 내 총 수행 횟수 (AMRAP · 6종목 합산 반복 수)</label>`;
   const timeRow = document.createElement("div");
   timeRow.style.display="flex"; timeRow.style.gap="10px"; timeRow.style.alignItems="center";
   timeRow.innerHTML = `
-    <input id="recMinInput" type="number" min="0" placeholder="분" value="${state.recordMin}" style="flex:1;background:var(--bg-panel-2);border:1px solid var(--line);border-radius:8px;padding:11px 12px;color:var(--text);font-size:14px;"/>
-    <span style="color:var(--muted2);font-weight:700;">분</span>
-    <input id="recSecInput" type="number" min="0" max="59" placeholder="초" value="${state.recordSec}" style="flex:1;background:var(--bg-panel-2);border:1px solid var(--line);border-radius:8px;padding:11px 12px;color:var(--text);font-size:14px;"/>
-    <span style="color:var(--muted2);font-weight:700;">초</span>
+    <input id="recRepsInput" type="number" min="0" placeholder="예: 84" value="${state.recordReps}" style="flex:1;background:var(--bg-panel-2);border:1px solid var(--line);border-radius:8px;padding:11px 12px;color:var(--text);font-size:14px;"/>
+    <span style="color:var(--muted2);font-weight:700;">회</span>
   `;
   timeField.appendChild(timeRow);
   form.appendChild(timeField);
 
   const submitBtn = document.createElement("button");
-  submitBtn.className="btn btn-primary"; submitBtn.textContent="🔥 완주 기록 등록하기";
+  submitBtn.className="btn btn-primary"; submitBtn.textContent="🔥 기록 등록하기";
   submitBtn.onclick = submitRecord;
   form.appendChild(submitBtn);
   box.appendChild(form);
@@ -1431,17 +1431,15 @@ function renderRecordTab(){
     const ban=document.getElementById("recBanInput");
     const beon=document.getElementById("recBeonInput");
     const n=document.getElementById("recNameInput");
-    const m=document.getElementById("recMinInput");
-    const s=document.getElementById("recSecInput");
+    const r=document.getElementById("recRepsInput");
     if(ban) ban.onchange = e=>state.recordBan=e.target.value;
     if(beon) beon.onchange = e=>state.recordBeon=e.target.value;
     if(n) n.oninput = e=>state.recordName=e.target.value;
-    if(m) m.oninput = e=>state.recordMin=e.target.value;
-    if(s) s.oninput = e=>state.recordSec=e.target.value;
+    if(r) r.oninput = e=>state.recordReps=e.target.value;
   },0);
 
   const boardEyebrow=document.createElement("div"); boardEyebrow.className="eyebrow";
-  boardEyebrow.textContent = "1차시 서킷 완주 기록 · 실시간 순위 (빠를수록 상위)";
+  boardEyebrow.textContent = "1차시 서킷 AMRAP 기록 · 실시간 순위 (많을수록 상위)";
   box.appendChild(boardEyebrow);
 
   if(state.leaderboardCache === null){
@@ -1453,7 +1451,7 @@ function renderRecordTab(){
 
   const list = state.leaderboardCache;
   if(list.length === 0){
-    const empty=document.createElement("div"); empty.className="empty"; empty.textContent="아직 등록된 기록이 없어요. 첫 완주 기록의 주인공이 되어 보세요!";
+    const empty=document.createElement("div"); empty.className="empty"; empty.textContent="아직 등록된 기록이 없어요. 첫 기록의 주인공이 되어 보세요!";
     box.appendChild(empty);
     return box;
   }
@@ -1465,7 +1463,7 @@ function renderRecordTab(){
     row.innerHTML = `
       <div class="lb-rank">${i+1}</div>
       <div class="lb-name">${r.student_name}<span class="lb-class">${r.class_group || ""}</span></div>
-      <div class="lb-value">${formatSecToClock(r.record_value)}</div>
+      <div class="lb-value">${r.record_value}회</div>
     `;
     board.appendChild(row);
   });
