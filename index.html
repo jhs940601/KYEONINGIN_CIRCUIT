@@ -359,21 +359,22 @@ try{
    구글 시트 연동 (선택 사항)
    -----------------------------------------------------------
    아래 GOOGLE_SHEET_WEBAPP_URL에 Google Apps Script 웹 앱 URL을
-   붙여넣으면, 기록 대결 탭에 등록되는 모든 기록이 Supabase와
-   동시에 구글 시트에도 한 줄씩 자동으로 기록됩니다.
+   붙여넣으면, [기록 대결] 탭의 기록과 [동료평가지] 제출 내역이
+   Supabase/앱 저장소와 동시에 구글 시트에도 자동으로 기록됩니다.
+   기록은 "기록대결" 탭에, 동료평가는 "동료평가" 탭에 각각 쌓입니다.
    설정 방법은 대화 내 안내를 참고하세요. 비워두면(기본값) 이
    기능은 자동으로 건너뜁니다.
 ========================================================= */
-const GOOGLE_SHEET_WEBAPP_URL = ""; // 예: "https://script.google.com/macros/s/AKfycb.../exec"
+const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzBFMwmMvzgnUhF2DVpCSYnbbnr-HdH6Q2X7-WXo2qkTxuuaedlS9DkDi0pITH61AIk8g/exec";
 
-function sendToGoogleSheet(row){
+function postToSheet(type, rows){
   if(!GOOGLE_SHEET_WEBAPP_URL) return;
   try{
     fetch(GOOGLE_SHEET_WEBAPP_URL, {
       method:"POST",
       mode:"no-cors",
       headers:{ "Content-Type":"text/plain;charset=utf-8" },
-      body: JSON.stringify(row)
+      body: JSON.stringify({ type, rows })
     }).catch(e=>console.error("구글 시트 전송 실패", e));
   }catch(e){ console.error("구글 시트 전송 실패", e); }
 }
@@ -1294,6 +1295,27 @@ function renderManualOverlay(){
 /* =========================================================
    동료평가지 탭
 ========================================================= */
+// 동료평가 제출 1건을 구글시트 행(동작 단위)으로 변환
+// 컬럼: 날짜, 차시, 관찰자반, 관찰자번호, 관찰자이름, 수행자이름, WOD, 동작명, 항목별점수, 평균점수, 제출시각
+function buildEvalSheetRows(payload){
+  const rows = [];
+  const tsIso = new Date(payload.ts).toISOString();
+  Object.keys(payload.answers).forEach(exId=>{
+    const ex = LIB[exId];
+    if(!ex) return;
+    const a = payload.answers[exId];
+    const scores = ex.checklist.map((q,qi)=> (typeof a[qi]==="number" ? a[qi] : "")).filter(v=>v!=="");
+    if(scores.length===0) return;
+    const avg = scores.reduce((x,y)=>x+y,0) / scores.length;
+    rows.push([
+      payload.date, payload.cha, payload.observerBan, payload.observerBeon,
+      payload.observerName, payload.performer, payload.wodTitle, ex.name,
+      scores.join(","), avg.toFixed(1), tsIso
+    ]);
+  });
+  return rows;
+}
+
 function generateFeedbackSummary(answers, evalIds){
   let totalScore=0, totalCount=0;
   const perEx = []; // {id, name, avg, total, lowItems:[{q,score}]}
@@ -1477,6 +1499,7 @@ function renderEvalTab(){
       ts: Date.now()
     };
     await appendEvalToIndex(payload);
+    postToSheet("eval", buildEvalSheetRows(payload));
     const summaryLines = generateFeedbackSummary(state.evalAnswers, evalIds);
     state.evalLastSummary = { performer: state.evalPerformer, lines: summaryLines };
     showToast("동료평가가 제출되었어요 ✅");
@@ -1771,10 +1794,9 @@ async function submitRecord(){
   };
   const { error } = await sb.from("wod_leaderboard").insert(payload);
   if(error){ console.error(error); showToast("등록 중 오류가 발생했어요"); return; }
-  sendToGoogleSheet({
-    날짜: todayStr(), WOD: state.wod.title, 학번: classGroup,
-    이름: state.recordName, 기록_회: reps, 등록시각: new Date().toISOString()
-  });
+  postToSheet("record", [
+    [todayStr(), state.wod.title, classGroup, state.recordName, reps, new Date().toISOString()]
+  ]);
   showToast("기록이 등록됐어요! 실시간 반영 🔥");
   state.recordReps = "";
   render();
