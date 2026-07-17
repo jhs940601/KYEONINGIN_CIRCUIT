@@ -1318,51 +1318,108 @@ function buildEvalSheetRows(payload){
 
 function generateFeedbackSummary(answers, evalIds){
   let totalScore=0, totalCount=0;
-  const perEx = []; // {id, name, avg, total, lowItems:[{q,score}]}
+  const perEx = []; // {id, name, avg, total, items:[{q,score}], lowItems, highItems}
   evalIds.forEach(id=>{
     const a = answers[id];
     if(!a) return;
     const ex = LIB[id];
-    let sum=0, total=0; const lowItems=[];
+    let sum=0, total=0; const items=[], lowItems=[], highItems=[];
     ex.checklist.forEach((q,qi)=>{
       const v = a[qi];
       if(typeof v !== "number") return;
       total++; sum += v;
+      items.push({q, score:v});
       if(v<=3) lowItems.push({q, score:v});
+      if(v>=5) highItems.push({q, score:v});
     });
     if(total>0){
-      perEx.push({id, name:ex.name, avg: sum/total, total, lowItems});
+      perEx.push({id, name:ex.name, avg: sum/total, total, items, lowItems, highItems});
       totalScore += sum; totalCount += total;
     }
   });
 
   if(totalCount===0){
-    return ["아직 체크된 평가 항목이 없어요.", "체크리스트를 하나 이상 눌러 평가한 뒤 제출해 주세요.", ""];
+    return [
+      "아직 체크된 평가 항목이 없어요.",
+      "체크리스트를 하나 이상 눌러 평가한 뒤 제출해 주세요.",
+      "관찰자가 항목별로 1~5점을 눌러야 요약이 만들어져요.",
+    ];
   }
 
+  const lines = [];
   const overallAvg = totalScore/totalCount;
-  const line1 = `총 ${totalCount}개 평가 항목의 평균 점수는 ${overallAvg.toFixed(1)} / 5.0점이에요.`;
+  const sortedByAvg = perEx.slice().sort((a,b)=> b.avg - a.avg);
+  const best = sortedByAvg[0];
+  const second = sortedByAvg[1];
+  const worst = sortedByAvg[sortedByAvg.length-1];
+  const spread = best.avg - worst.avg;
 
-  // 가장 잘한 동작 (평균 점수 최고)
-  const best = perEx.slice().sort((a,b)=> b.avg - a.avg)[0];
-  let line2;
-  if(best.avg >= 4.5){
-    line2 = `특히 '${best.name}' 동작은 평균 ${best.avg.toFixed(1)}점으로 기준을 거의 완벽하게 충족했어요. 아주 좋아요!`;
+  // 1. 전체 총평
+  lines.push(`총 ${evalIds.filter(id=>answers[id]).length}개 동작, ${totalCount}개 평가 항목의 평균 점수는 ${overallAvg.toFixed(1)} / 5.0점이에요.`);
+
+  // 2. 전체 수준 코멘트
+  if(overallAvg>=4.5) lines.push("전반적으로 기준 동작을 매우 정확하게 수행하고 있어요. 훌륭해요!");
+  else if(overallAvg>=3.5) lines.push("전반적으로 양호한 자세를 유지하고 있고, 조금만 더 다듬으면 훨씬 좋아질 거예요.");
+  else if(overallAvg>=2.5) lines.push("기본적인 동작은 되고 있지만, 세부 자세에서 신경 쓸 부분이 몇 가지 보여요.");
+  else lines.push("아직 기준 자세를 따라가는 데 어려움이 있어 보여요. 천천히, 정확하게 연습해 봐요.");
+
+  // 3. 가장 잘한 동작
+  if(best.avg>=4.5) lines.push(`특히 '${best.name}' 동작은 평균 ${best.avg.toFixed(1)}점으로 기준을 거의 완벽하게 충족했어요. 아주 좋아요!`);
+  else lines.push(`'${best.name}' 동작에서 평균 ${best.avg.toFixed(1)}점으로 가장 좋은 평가를 받았어요.`);
+
+  // 4. 가장 잘한 동작의 구체적인 강점 항목
+  if(best.highItems.length>0){
+    lines.push(`특히 "${best.highItems[0].q}" 항목에서 만점(5점)을 받았어요.`);
   } else {
-    line2 = `'${best.name}' 동작에서 평균 ${best.avg.toFixed(1)}점으로 가장 좋은 평가를 받았어요.`;
+    lines.push(`'${best.name}' 동작은 큰 오차 없이 안정적으로 수행하고 있어요.`);
   }
 
-  // 개선이 필요한 동작 (낮은 점수 항목이 있는 것 중 평균이 가장 낮은 동작)
+  // 5. 두 번째로 잘한 동작 (있는 경우)
+  if(second){
+    lines.push(`'${second.name}' 동작도 평균 ${second.avg.toFixed(1)}점으로 좋은 편이에요.`);
+  } else {
+    lines.push(`이번 시간은 '${best.name}' 한 동작을 집중적으로 평가했어요.`);
+  }
+
+  // 6. 동작 간 편차 코멘트
+  if(perEx.length>1){
+    if(spread>=1.5) lines.push(`동작별 점수 차이가 꽤 있는 편이에요(최고 ${best.avg.toFixed(1)}점, 최저 ${worst.avg.toFixed(1)}점). 약한 동작 위주로 연습해 보세요.`);
+    else lines.push(`동작별 점수 편차가 크지 않아 전반적으로 고르게 잘 수행하고 있어요.`);
+  } else {
+    lines.push(`다음 시간에는 다른 동작들도 함께 평가해 보면 더 정확한 비교가 가능할 거예요.`);
+  }
+
+  // 7. 개선이 필요한 동작
   const needsWork = perEx.filter(e=>e.lowItems.length>0).sort((a,b)=> a.avg - b.avg)[0];
-  let line3;
   if(needsWork){
-    const worstItem = needsWork.lowItems.slice().sort((a,b)=>a.score-b.score)[0];
-    line3 = `다음엔 '${needsWork.name}' 동작에서 "${worstItem.q}" 부분을 조금 더 신경 써 보면 좋겠어요. (평점 ${worstItem.score}/5)`;
+    lines.push(`가장 신경 써야 할 동작은 '${needsWork.name}'이에요 (평균 ${needsWork.avg.toFixed(1)}점).`);
   } else {
-    line3 = `모든 동작을 기준에 맞게 정확히 수행했어요. 다음 시간에도 이 자세를 유지해 보세요!`;
+    lines.push(`감점된 항목이 없어요. 지금처럼만 유지해도 좋아요.`);
   }
 
-  return [line1, line2, line3];
+  // 8. 구체적인 미흡 항목 1
+  if(needsWork){
+    const sortedLow = needsWork.lowItems.slice().sort((a,b)=>a.score-b.score);
+    const worstItem = sortedLow[0];
+    lines.push(`특히 "${worstItem.q}" 부분에서 ${worstItem.score}점을 받았어요. 이 부분을 다음 시간에 다시 확인해 보세요.`);
+
+    // 9. 구체적인 미흡 항목 2 (있으면), 없으면 다른 개선 동작
+    if(sortedLow[1]){
+      lines.push(`"${sortedLow[1].q}" 항목도 ${sortedLow[1].score}점으로 함께 점검해 보면 좋겠어요.`);
+    } else {
+      const needsWork2 = perEx.filter(e=>e.id!==needsWork.id && e.lowItems.length>0).sort((a,b)=>a.avg-b.avg)[0];
+      if(needsWork2) lines.push(`'${needsWork2.name}' 동작도 평균 ${needsWork2.avg.toFixed(1)}점으로 함께 살펴보면 좋겠어요.`);
+      else lines.push(`나머지 항목들은 모두 기준을 잘 충족했어요.`);
+    }
+  } else {
+    lines.push(`모든 항목이 4점 이상으로, 큰 약점 없이 고르게 잘하고 있어요.`);
+    lines.push(`현재 수준을 유지하면서 반복 횟수나 속도를 조금씩 늘려보는 것도 좋겠어요.`);
+  }
+
+  // 10. 마무리 격려
+  lines.push(`동료의 관찰과 피드백을 참고해서, 다음 시간에는 오늘보다 한 단계 더 정확한 자세로 도전해 보세요!`);
+
+  return lines.slice(0,10);
 }
 
 function renderEvalTab(){
