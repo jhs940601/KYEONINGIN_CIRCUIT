@@ -1513,7 +1513,11 @@ async function fetchEvalSubmissions(){
     }
     state.evalSubmissions = results;
     if(state.tab === "teacher") render();
-  }catch(e){ console.error(e); state.evalSubmissions = []; }
+  }catch(e){
+    console.error(e);
+    state.evalSubmissions = [];
+    if(state.tab === "teacher") render();
+  }
 }
 
 /* =========================================================
