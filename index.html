@@ -384,252 +384,90 @@ function postToSheet(type, rows){
    (원본 학습지의 유의사항/체크리스트를 그대로 반영)
 ========================================================= */
 const LIB = {
-  jjack: {
-    name:"팔벌려뛰기", target:"20회",
-    cautions:["양발의 간격을 어깨너비 이상 넓히기","동작 수행 중 팔꿈치 구부리지 않기","양발이 땅에서 떨어지도록 점프하기"],
-    checklist:["양발의 간격은 어깨너비 이상 넓혔나요?","동작 수행 중 팔꿈치를 구부리지 않았나요?","양발이 땅에서 떨어져서 뛰기를 실시하였나요?","정해진 횟수를 다 수행하였나요?","정해진 횟수를 모두 정확한 자세로 달성하였나요?"],
-    videoId:"YraqfPxeWMw", query:"팔벌려뛰기 jumping jack 올바른 자세"
-  },
-  armwalk: {
-    name:"암 워킹", target:"10회",
-    cautions:["동작 수행 중 무릎 구부리지 않기","손이 바닥에 끝까지 도달하도록 내려가기","1회 동작 후 몸을 곧게 펴기"],
-    checklist:["동작 수행 중 무릎을 구부리지 않았나요?","바닥에 끝까지 내려갔나요?","1회 동작이 끝난 후 몸을 곧게 폈나요?","정해진 횟수를 다 수행하였나요?","정해진 횟수를 모두 정확한 자세로 달성하였나요?"],
-    videoId:"poRhTrDhC1o", query:"암워킹 인치웜 운동 자세"
-  },
-  burpee: {
-    name:"점프 버피테스트", target:"15회",
-    cautions:["양손을 짚을 때 어깨너비만큼 벌리기","마지막 점프 동작 시 팔꿈치 펴기","점프 후 앞꿈치로 착지하기"],
-    checklist:["양손을 짚을 때 어깨너비만큼 벌렸나요?","마지막 점프 동작 중 팔꿈치를 구부리지 않았나요?","점프 후 착지는 앞꿈치로 하였나요?","정해진 횟수를 다 수행하였나요?","정해진 횟수를 모두 정확한 자세로 달성하였나요?"],
-    videoId:"H9e2BKOKUP0", query:"버피테스트 burpee 정확한 자세"
-  },
-  plankjack: {
-    name:"플랭크 잭", target:"15회",
-    cautions:["점핑 시 양발 간격을 어깨너비 이상 넓히기","엉덩이와 허리를 지면과 수평으로 유지하기","머리부터 발끝까지 일직선 유지하기"],
-    checklist:["점핑 동작 수행 중 양발의 간격이 어깨너비 이상 넓혔나요?","엉덩이와 허리 위치가 지면과 수평이 되었나요?","머리와 발이 일직선이 되도록 유지하였나요?","정해진 횟수를 다 수행하였나요?","정해진 횟수를 모두 정확한 자세로 달성하였나요?"],
-    videoId:"N3WzhR974h0", query:"플랭크잭 plank jack 운동 자세"
-  },
-  rtwist: {
-    name:"러시안 트위스트", target:"15회",
-    cautions:["지면과 상체 각도 약 45도 유지하기","1회 동작 후 깍지낀 손을 배꼽 앞에 위치시키기","트위스트 중 팔꿈치가 바닥에 닿지 않게 하기"],
-    checklist:["지면과 상체의 각도를 약 45°로 유지하였나요?","1회 동작이 끝난 후 깍지낀 손은 배꼽에 위치하였나요?","트위스트 동작 중 팔꿈치가 땅에 닿았나요?","정해진 횟수를 다 수행하였나요?","정해진 횟수를 모두 정확한 자세로 달성하였나요?"],
-    videoId:"oAlx74Fj1iY", query:"러시안 트위스트 운동 자세"
-  },
-  crunch: {
-    name:"크런치", target:"20회",
-    cautions:["복근에 긴장 지속하기","허리는 바닥에 닿게 하기","시선은 배꼽, 턱은 내리기","내려오면서 긴장 풀지 않기"],
-    checklist:["동작 내내 복근에 긴장을 유지하였나요?","허리가 바닥에서 뜨지 않았나요?","시선을 배꼽 쪽으로 두고 턱을 당겼나요?","정해진 횟수를 다 수행하였나요?","정해진 횟수를 모두 정확한 자세로 달성하였나요?"],
-    videoId:null, query:"크런치 운동 정확한 자세"
-  },
-  widesquat: {
-    name:"점프 와이드 스쿼트", target:"15회",
-    cautions:["발을 넓게(약 160도) 벌리기","내려갈 때 무릎 90도 유지하기","무릎이 발 앞으로 나오지 않게 하기","엉덩이를 뒤로 빼고 실시하기","착지는 앞꿈치로 하기"],
-    checklist:["발을 어깨너비보다 넓게(약 160도) 벌렸나요?","내려갈 때 무릎이 90도가 되도록 앉았나요?","무릎이 발끝보다 앞으로 나오지 않았나요?","엉덩이를 뒤로 빼며 앉았나요?","점프 후 착지를 앞꿈치로 하였나요?"],
-    videoId:"0LSfy60yRpM", query:"점프 와이드 스쿼트 운동 자세"
-  },
-  plank: {
-    name:"플랭크", target:"30초",
-    cautions:["어깨너비만큼 팔꿈치로 지탱하기","엉덩이·허리를 지면과 수평으로 유지하기","귀-어깨-엉덩이-발목이 일직선 되게 하기"],
-    checklist:["팔꿈치를 어깨너비만큼 벌려 지탱하였나요?","엉덩이와 허리가 지면과 수평을 이루었나요?","귀-어깨-엉덩이-발목이 일직선을 이루었나요?","정해진 시간을 끝까지 유지하였나요?","정해진 시간 동안 자세가 무너지지 않았나요?"],
-    videoId:"6dk_g8s2mRk", query:"플랭크 운동 자세"
-  },
-  scissor: {
-    name:"가위차기", target:"20회",
-    cautions:["누워서 손바닥을 바닥에 붙이기","양 발꿈치를 바닥에서 떼기","한쪽 다리씩 번갈아 올렸다 내리기","무릎을 펴고 실시하기"],
-    checklist:null, videoId:null, query:"가위차기 운동 자세"
-  },
-  lunge: {
-    name:"좌우 런지", target:"20회",
-    cautions:["앞뒤 다리 간격을 크게 하기","앞다리 뒤꿈치에 중심 두기","무릎이 발 앞으로 나오지 않도록 90도 유지하기","허리를 펴고 상체를 똑바로 유지하기"],
-    checklist:null, videoId:"CaT6kHxngJE", query:"좌우 런지 운동 자세"
-  },
-  pushup: {
-    name:"푸쉬업(무릎대고)", target:"15회",
-    cautions:["손은 어깨너비로 위치시키기","복근·엉덩이·허벅지에 힘주기","끝까지 내려갔다가 올라오기","엉덩이·허리를 너무 낮거나 높게 하지 않기"],
-    checklist:["손을 어깨너비로 바닥에 짚었나요?","복근과 엉덩이에 힘을 주어 몸을 지탱하였나요?","팔꿈치를 끝까지 굽혔다가 올라왔나요?","정해진 횟수를 다 수행하였나요?","정해진 횟수를 모두 정확한 자세로 달성하였나요?"],
-    videoId:null, query:"무릎대고 푸쉬업 자세"
-  },
-  superman: {
-    name:"슈퍼맨", target:"15회",
-    cautions:["엎드린 자세에서 시작하기","팔과 다리 동시에 올리기","엉덩이·허벅지에 힘주기","시선은 바닥으로"],
-    checklist:null, videoId:null, query:"슈퍼맨 운동 자세"
-  },
-  jjhigh: {
-    name:"팔벌려높이뛰기", target:"20초×2세트",
-    cautions:["점프할 때 최대한 높이 뛰기","착지할 때 무릎을 살짝 구부려 충격 흡수하기","팔은 머리 위까지 크게 휘두르기"],
-    checklist:null, videoId:"YraqfPxeWMw", query:"팔벌려 높이뛰기 운동 자세"
-  },
-  crunchside: {
-    name:"좌우 크런치", target:"20초×2세트",
-    cautions:["팔꿈치가 반대쪽 무릎에 닿도록 상체 회전하기","목이 아닌 복근의 힘으로 들어올리기","허리는 바닥에 붙이기"],
-    checklist:null, videoId:null, query:"좌우 크런치 바이시클 크런치 자세"
-  },
-  pulsesquat: {
-    name:"스쿼트 (내려갔다 올라오기)", target:"20초×2세트",
-    cautions:["무릎이 발끝을 넘지 않게 하기","허리를 곧게 펴고 시선은 정면","내려간 자세에서 잠깐 멈췄다가 올라오기"],
-    checklist:null, videoId:"0LSfy60yRpM", query:"스쿼트 펄스 내려갔다 올라오기 자세"
-  },
-  mountainclimber: {
-    name:"마운틴 클라이머", target:"20초×2세트",
-    cautions:["플랭크 자세를 끝까지 유지하기","엉덩이가 위로 들리지 않게 하기","무릎을 빠르게 가슴 쪽으로 당기기"],
-    checklist:null, videoId:null, query:"마운틴클라이머 운동 자세"
-  },
-  backexercise: {
-    name:"등 운동(백 익스텐션)", target:"20초×2세트",
-    cautions:["엎드린 자세에서 상체만 천천히 들어올리기","허리에 무리가 가지 않게 반동 없이 실시하기","목은 자연스럽게 정렬 유지하기"],
-    checklist:null, videoId:null, query:"백 익스텐션 등 운동 자세"
-  },
-  armcircle: {
-    name:"팔돌리기", target:"앞 1세트·뒤 1세트",
-    cautions:["어깨로 최대한 크게 원을 그리기","반동을 사용하지 않고 천천히 돌리기","앞으로 한 세트, 뒤로 한 세트 실시하기"],
-    checklist:null, videoId:null, query:"팔돌리기 어깨 운동 자세"
-  },
-  shoulderopen: {
-    name:"어깨 모았다 펴기", target:"20초×2세트",
-    cautions:["견갑골을 모았다가 펴는 느낌으로 실시하기","가슴을 펴고 시선은 정면 유지하기","어깨에 힘이 들어가지 않게 하기"],
-    checklist:null, videoId:null, query:"어깨 견갑골 운동 자세"
-  },
-  sidestepball: {
-    name:"사이드스텝(밸런스볼)", target:"20초×2세트", equipment:"밸런스볼 필요",
-    cautions:["밸런스볼이 필요한 동작입니다","볼을 양손으로 지지하며 좌우로 이동하기","시선은 정면, 중심을 잃지 않도록 주의하기"],
-    checklist:null, videoId:null, query:"밸런스볼 사이드스텝 운동"
-  },
-  kneekickball: {
-    name:"무릎차기(밸런스볼)", target:"좌 1세트·우 1세트", equipment:"밸런스볼 필요",
-    cautions:["밸런스볼이 필요한 동작입니다","볼 위에서 균형을 잡고 무릎을 번갈아 올리기","상체는 곧게 세우기"],
-    checklist:null, videoId:null, query:"밸런스볼 무릎차기 운동"
-  },
-  absball: {
-    name:"복근 좌우(밸런스볼)", target:"20초×2세트", equipment:"밸런스볼 필요",
-    cautions:["밸런스볼이 필요한 동작입니다","볼을 잡고 좌우로 몸통을 회전하기","복부에 긴장을 유지하기"],
-    checklist:null, videoId:null, query:"밸런스볼 복근 트위스트 운동"
-  },
-  plankball: {
-    name:"플랭크 좌우(밸런스볼)", target:"20초×2세트", equipment:"밸런스볼 필요",
-    cautions:["밸런스볼이 필요한 동작입니다","팔꿈치를 볼 위에 올리고 좌우로 이동하며 버티기","몸이 일직선이 되도록 유지하기"],
-    checklist:null, videoId:null, query:"밸런스볼 플랭크 운동"
-  },
-  neckband: {
-    name:"목 운동(밴드)", target:"10초×3세트", equipment:"탄력밴드 필요",
-    cautions:["탄력밴드가 필요한 동작입니다","목 주변 근육을 천천히 스트레칭하기","무리한 힘을 주지 않기"],
-    checklist:null, videoId:null, query:"목 스트레칭 밴드 운동"
-  },
-  backstretch: {
-    name:"등 펴주는 운동", target:"10회×3세트",
-    cautions:["등을 둥글게 말았다가 펴는 동작을 천천히 반복하기","호흡을 멈추지 않기"],
-    checklist:null, videoId:null, query:"등 스트레칭 운동 자세"
-  },
-  psoas: {
-    name:"장요근 운동", target:"10회×3세트",
-    cautions:["골반이 틀어지지 않도록 정렬 유지하기","허리가 아치 모양으로 꺾이지 않게 복부에 힘주기"],
-    checklist:null, videoId:null, query:"장요근 스트레칭 운동 자세"
-  },
-  squat10: {
-    name:"스쿼트", target:"10회×3세트",
-    cautions:["무릎이 발끝을 넘지 않게 하기","엉덩이를 뒤로 빼며 앉기","허리를 곧게 펴기"],
-    checklist:null, videoId:"0LSfy60yRpM", query:"스쿼트 정확한 자세"
-  },
-  situp: {
-    name:"윗몸 말아올리기", target:"2세트",
-    cautions:["목이 아닌 복근의 힘으로 상체를 말아올리기","머리를 과도하게 당기지 않기"],
-    checklist:null, videoId:null, query:"윗몸 말아올리기 크런치 자세"
-  },
-  backband: {
-    name:"등 밴드", target:"10회×3세트", equipment:"탄력밴드 필요",
-    cautions:["탄력밴드가 필요한 동작입니다","견갑골을 조이며 밴드를 당기기","반동 없이 천천히 실시하기"],
-    checklist:null, videoId:null, query:"등 밴드 운동 자세"
-  },
-  backshoulderband: {
-    name:"등/어깨 밴드", target:"10회×3세트", equipment:"탄력밴드 필요",
-    cautions:["탄력밴드가 필요한 동작입니다","어깨와 등에 고르게 힘이 들어가도록 실시하기"],
-    checklist:null, videoId:null, query:"등 어깨 밴드 운동 자세"
-  },
-  psoasband: {
-    name:"장요근 밴드", target:"10회×3세트", equipment:"탄력밴드 필요",
-    cautions:["탄력밴드가 필요한 동작입니다","골반이 흔들리지 않도록 고정하고 실시하기"],
-    checklist:null, videoId:null, query:"장요근 밴드 운동 자세"
-  },
-  supermanband: {
-    name:"슈퍼맨", target:"10회×3세트",
-    cautions:["엎드린 자세에서 팔과 다리를 동시에 들어올리기","엉덩이와 허벅지에 힘주기","시선은 바닥으로"],
-    checklist:null, videoId:null, query:"슈퍼맨 운동 자세"
-  },
-  backband2: {
-    name:"등 운동(허리→골반) 밴드", target:"10회×3세트", equipment:"탄력밴드 필요",
-    cautions:["탄력밴드가 필요한 동작입니다","허리에서 골반 방향으로 당기는 느낌으로 실시하기"],
-    checklist:null, videoId:null, query:"등 밴드 운동 자세"
-  },
-  shoulderband2: {
-    name:"어깨(위→가슴) 밴드", target:"10회×3세트", equipment:"탄력밴드 필요",
-    cautions:["탄력밴드가 필요한 동작입니다","위에서 가슴 방향으로 당기며 어깨에 자극 주기"],
-    checklist:null, videoId:null, query:"어깨 밴드 운동 자세"
-  },
-  shouldertriband: {
-    name:"어깨(삼두) 밴드 좌우", target:"좌우 10회×3세트", equipment:"탄력밴드 필요",
-    cautions:["탄력밴드가 필요한 동작입니다","좌우 번갈아 삼두에 자극이 가도록 실시하기"],
-    checklist:null, videoId:null, query:"삼두 밴드 운동 자세"
-  },
-  legraiseband: {
-    name:"다리 올려 벌리기 밴드", target:"10회×2세트", equipment:"탄력밴드 필요",
-    cautions:["탄력밴드가 필요한 동작입니다","다리를 천천히 벌리고 모으며 저항을 느끼기","골반이 흔들리지 않게 고정하기"],
-    checklist:null, videoId:null, query:"다리 밴드 운동 자세"
-  }
+  lunge_alt: { name:"런지 (양쪽 번갈아)", cautions:["앞뒤 다리 간격을 크게 하기","무릎이 발끝보다 앞으로 나오지 않게 하기","상체를 곧게 세우고 좌우 번갈아 실시하기"], videoId:"mymNhnnoGdw", query:"런지 운동 자세" },
+  backkick: { name:"백킥", cautions:["상체를 곧게 유지하기","다리를 뒤로 찰 때 반동 사용하지 않기","엉덩이(둔근)에 힘주는 느낌으로 차기"], videoId:"d5dnuqmxEtk", query:"백킥 운동 자세" },
+  calfjump: { name:"종아리 점프", cautions:["무릎을 거의 펴고 발목 힘으로 점프하기","착지는 앞꿈치로 부드럽게 하기","리듬감 있게 연속으로 실시하기"], videoId:"Nhfj1iwnaJg", query:"종아리 점프 운동 자세" },
+  slrdl: { name:"싱글레그 데드리프트", cautions:["축이 되는 다리는 살짝 굽히기","상체와 들어올린 다리가 일직선이 되게 하기","균형을 잃지 않도록 천천히 실시하기"], videoId:"6O370O_FFHM", query:"싱글레그 데드리프트 운동 자세" },
+  calfraise: { name:"카프레이즈", cautions:["발끝으로 최대한 높이 올라가기","천천히 내려오며 종아리 자극 느끼기","무릎을 펴고 실시하기"], videoId:"ldmGt7BnXqE", query:"카프레이즈 운동 자세" },
+  scissorjack: { name:"시저스 잭", cautions:["팔과 다리를 크게 벌렸다 모으기","가위처럼 리드미컬하게 교차하기","착지 시 무릎 살짝 구부리기"], videoId:"g55Uf1QUVFQ", query:"시저스 잭 운동 자세" },
+  jumpsquat: { name:"점프스쿼트", cautions:["착지 시 무릎이 발끝을 넘지 않게 하기","최대한 높이 점프하기","착지는 부드럽게 무릎을 굽히며 흡수하기"], videoId:"yiCxVxkxqE8", query:"점프스쿼트 운동 자세" },
+  hiplank_shouldertap: { name:"하이플랭크 숄더탭", cautions:["엉덩이가 들리거나 처지지 않게 유지하기","손으로 반대쪽 어깨를 터치할 때 몸통 흔들리지 않기","코어에 힘을 유지하기"], videoId:"RlfLJTBGxds", query:"하이플랭크 숄더탭 운동 자세" },
+  sidelegraise: { name:"사이드 레그 리프트", cautions:["옆으로 누워 골반이 뒤로 빠지지 않게 하기","다리를 천천히 들어올리고 내리기","좌우 번갈아 실시하기"], videoId:"KOh4_e9RgCA", query:"사이드 레그 리프트 운동 자세" },
+  jumpingjack: { name:"점핑잭", cautions:["양발 간격을 어깨너비 이상 벌리기","팔은 머리 위까지 크게 휘두르기","리듬감 있게 연속으로 실시하기"], videoId:"c_F5dp6KiH0", query:"점핑잭 운동 자세" },
+  harvardstep: { name:"하버드 스텝", cautions:["스텝 박스에 발 전체를 딛기","오르내릴 때 무릎이 안쪽으로 모이지 않게 하기","일정한 리듬으로 반복하기"], videoId:"Dk316PilCuA", query:"하버드 스텝 운동 자세" },
+  glutebridge: { name:"글루트 브릿지", cautions:["어깨-골반-무릎이 일직선이 되도록 올리기","허리가 아닌 엉덩이 힘으로 들어올리기","정점에서 잠깐 멈췄다 내려오기"], videoId:null, query:"글루트 브릿지 운동 자세" },
+  squat: { name:"스쿼트", cautions:["무릎이 발끝을 넘지 않게 하기","엉덩이를 뒤로 빼며 앉기","허리를 곧게 펴고 시선은 정면"], videoId:"X_CRsLMSeFc", query:"스쿼트 정확한 자세" },
+  burpee: { name:"버피", cautions:["양손을 어깨너비로 짚기","마지막 점프 시 팔꿈치 펴기","착지는 앞꿈치로 부드럽게"], videoId:"tOh1M5wMHtw", query:"버피 운동 자세" },
+  legraise: { name:"레그레이즈", cautions:["허리가 뜨지 않게 바닥에 밀착하기","다리를 천천히 들고 내리기","반동 없이 복근 힘으로 실시하기"], videoId:"6qkT4s8C-K8", query:"레그레이즈 운동 자세" },
+  conjump: { name:"콘 위로 점프", cautions:["양발을 모아 좌우 또는 앞뒤로 점프하기","착지 시 무릎을 살짝 구부려 충격 흡수하기","리듬감 있게 연속으로 실시하기"], videoId:null, query:"콘 점프 운동 자세" },
+  mountainclimber: { name:"마운틴 클라이머", cautions:["플랭크 자세를 끝까지 유지하기","엉덩이가 위로 들리지 않게 하기","무릎을 빠르게 가슴 쪽으로 당기기"], videoId:"oxT24ibHCug", query:"마운틴클라이머 운동 자세" },
+  stepbox_sidestep: { name:"스텝박스 사이드스텝", cautions:["박스를 옆으로 오르내리기","무릎 방향이 발끝과 일치하게 하기","좌우 번갈아 실시하기"], videoId:"mqxbVj600bc", query:"스텝박스 사이드스텝 운동 자세" },
+  plank: { name:"플랭크", cautions:["팔꿈치를 어깨너비만큼 벌려 지탱하기","엉덩이와 허리가 지면과 수평 유지하기","귀-어깨-엉덩이-발목이 일직선 되게 하기"], videoId:"imw9lv38bSM", query:"플랭크 운동 자세" },
+  jjaem: { name:"잼잼 (악력 향상)", cautions:["손을 최대한 크게 폈다가 꽉 쥐기","팔에 힘을 주고 빠르게 반복하기","좌우 균형 있게 실시하기"], videoId:"BcT-rR_Qz78", query:"잼잼 악력 운동" },
+  stepup: { name:"스텝업 (왕복)", cautions:["스텝 박스에 발 전체를 딛기","무릎이 안쪽으로 모이지 않게 하기","좌우 번갈아 오르내리기"], videoId:"Dk316PilCuA", query:"스텝업 운동 자세" },
+  kneechestjump: { name:"무릎가슴닿기점프", cautions:["점프하며 무릎을 가슴 쪽으로 당기기","착지 시 무릎을 살짝 구부려 충격 흡수하기","상체를 곧게 유지하기"], videoId:"2XLlYuyriU0", query:"무릎 가슴 점프 운동" },
+  superman: { name:"슈퍼맨", cautions:["엎드린 자세에서 팔과 다리를 동시에 들어올리기","엉덩이와 허벅지에 힘주기","시선은 바닥으로"], videoId:"DAvlkjodKQE", query:"슈퍼맨 운동 자세" },
+  kneepushup_bag: { name:"무릎꿇고 푸쉬업 (가방 메고)", cautions:["손은 어깨너비로 짚기","복근·엉덩이에 힘주어 몸통 지탱하기","가방 무게에 맞춰 무리하지 않기"], videoId:"Hp5rRzriGjY", query:"무릎대고 푸쉬업 자세" },
+  lateralburpee: { name:"레터럴 버피 (가방 메고)", cautions:["옆으로 점프하며 버피 동작 연결하기","착지 시 무릎 살짝 구부리기","가방 무게에 맞춰 무리하지 않기"], videoId:null, query:"레터럴 버피 운동" },
+  highpitch: { name:"하이피치 (왕복)", cautions:["무릎을 높이 들어올리기","팔과 다리를 반대로 크게 흔들기","제자리에서 빠른 리듬 유지하기"], videoId:"XMZRPgNEYB0", query:"하이피치 운동 자세" },
+  twistcore: { name:"트위스트코어", cautions:["누운 자세에서 무릎을 구부리기","좌우 번갈아 뒤꿈치를 터치하기","복부에 긴장을 유지하기"], videoId:null, query:"트위스트코어 운동" },
+  situp: { name:"싯업", cautions:["무릎을 세우고 발을 고정하기","목이 아닌 복근 힘으로 상체를 들어올리기","반동 없이 천천히 실시하기"], videoId:null, query:"싯업 운동 자세" },
+  wallsit: { name:"월싯", cautions:["등을 벽에 붙이고 무릎 90도 유지하기","무릎이 발끝보다 앞으로 나오지 않게 하기","자세가 무너지지 않도록 버티기"], videoId:"HhYH9URzDF0", query:"월싯 운동 자세" }
 };
 
-const PRESETS = {
-  "1차시":["jjack","widesquat","plank","crunch","pushup","burpee"],
-  "2차시":["jjack","armwalk","plank","crunch","burpee"],
-  "3차시":["jjack","lunge","armwalk","plankjack","burpee"],
-  "4차시":["jjack","widesquat","armwalk","plank","rtwist"],
-  "5차시":["jjack","armwalk","burpee","plankjack","rtwist"]
-};
-const EVALUABLE = ["jjack","widesquat","plank","crunch","pushup","burpee","armwalk","plankjack","rtwist"]; // 동료평가 체크리스트가 있는 종목 (1차시 6종목 포함)
+const AFFECTIVE_CHECKLIST = [
+  "전체 학급을 위한 파이팅 구호 등의 적극적 표현을 1회 이상 실시하였는가?",
+  "서로를 격려하는 행동을 하였는가?",
+  "끝까지 포기하지 않는 인내심을 가졌는가?",
+  "수업에 적절한 운동 복장을 착용하였는가?",
+  "운동 후 뒷정리를 하였는가?"
+];
 const SCALE_LABELS = {1:"전혀 아니다", 2:"아니다", 3:"보통이다", 4:"그렇다", 5:"매우 그렇다"};
 
-// "오늘의 운동" 타바타 프리셋 (1set: 20초 운동 → 10초 휴식, 원본 학습지 그대로 반영)
-const TABATA_PRESETS = {
-  "오늘의 운동 1":{
-    exs:[
-      {id:"jjhigh", sets:2},
-      {id:"widesquat", sets:2},
-      {id:"plankjack", sets:2},
-      {id:"crunchside", sets:2},
-      {id:"burpee", sets:2}
-    ]
+const SESSIONS = {
+  "1차시": {
+    mode:"EMOM", label:"EMOM · 1분씩 4개 동작 × 4라운드 (총 16분)",
+    ids:["lunge_alt","backkick","calfjump","slrdl"],
+    notes:{ lunge_alt:"20회(양쪽 번갈아) · 4세트", backkick:"80회 · 4세트", calfjump:"40회 · 4세트", slrdl:"16회(왼·오 각 8개) · 4세트" }
   },
-  "오늘의 운동 2":{
-    exs:[
-      {id:"jjhigh", sets:2},
-      {id:"lunge", sets:2},
-      {id:"pushup", sets:2},
-      {id:"scissor", sets:2},
-      {id:"pulsesquat", sets:2}
-    ]
+  "2차시": {
+    mode:"EMOM", label:"EMOM · 1분씩 4개 동작 × 4라운드 (총 16분)",
+    ids:["calfraise","scissorjack","jumpsquat","hiplank_shouldertap"],
+    notes:{ calfraise:"30회 · 4세트", scissorjack:"50회 · 4세트", jumpsquat:"25회 · 4세트", hiplank_shouldertap:"30회 · 4세트" }
   },
-  "오늘의 운동 3 (밸런스볼)":{
-    exs:[
-      {id:"jjhigh", sets:2},
-      {id:"sidestepball", sets:2},
-      {id:"kneekickball", sets:["좌","우"]},
-      {id:"absball", sets:2},
-      {id:"plankball", sets:2}
-    ]
+  "3차시": {
+    mode:"FORTIME", label:"포타임 · 전체를 마친 시간을 기록",
+    ids:["sidelegraise","jumpingjack","harvardstep","glutebridge"],
+    notes:{ sidelegraise:"80회(왼·오 40씩)", jumpingjack:"100회", harvardstep:"80회", glutebridge:"60회" }
   },
-  "오늘의 운동 4":{
-    exs:[
-      {id:"jjhigh", sets:2},
-      {id:"backexercise", sets:2},
-      {id:"armcircle", sets:["앞","뒤"]},
-      {id:"shoulderopen", sets:2},
-      {id:"mountainclimber", sets:2}
-    ]
+  "4차시": {
+    mode:"AMRAP", capMinutes:10, label:"AMRAP 10분 · 최대한 많은 라운드 반복",
+    ids:["squat","burpee","legraise","conjump"],
+    notes:{ squat:"20회", burpee:"25회", legraise:"20회", conjump:"20회" }
+  },
+  "5차시": {
+    mode:"AMRAP", capMinutes:14, label:"AMRAP 14분 · 2인 1조, 합쳐서 수행", partner:true,
+    ids:["squat","mountainclimber","stepbox_sidestep","plank"],
+    notes:{ squat:"20회 (2인 1조, 같이)", mountainclimber:"50회 (왕복, 둘이 합쳐서)", stepbox_sidestep:"50회 (둘이 합쳐서)", plank:"1분 (둘이 합쳐서, 한 명이 스크린 보고 체크)" }
+  },
+  "6차시": {
+    mode:"FORTIME", label:"포타임 · 2인 1조, 합쳐서 수행", partner:true,
+    ids:["jjaem","stepup","kneechestjump","superman"],
+    notes:{ jjaem:"300회 (둘이 합쳐서, 안 하는 사람이 숫자 세어주기)", stepup:"200회 (왕복, 둘이 합쳐서, 숫자 세어주기)", kneechestjump:"200회 (둘이 합쳐서, 숫자 세어주기)", superman:"160회 (둘이 합쳐서, 숫자 세어주기)" }
+  },
+  "7차시": {
+    mode:"AMRAP", capMinutes:10, label:"AMRAP 10분 · 가방 메고 진행",
+    ids:["kneepushup_bag","lateralburpee","highpitch","twistcore"],
+    notes:{ kneepushup_bag:"20회 (가방 메고 진행)", lateralburpee:"25회 (가방 메고 진행)", highpitch:"25회 (왕복)", twistcore:"30회 (왼·오)" }
+  },
+  "8차시": {
+    mode:"FORTIME", label:"포타임 · 각자 4세트씩 나눠서 진행",
+    ids:["situp","mountainclimber","highpitch","wallsit"],
+    notes:{ situp:"160회(20개씩 8세트, 각자 4세트)", mountainclimber:"싯업이 끝날 때까지 계속 진행", highpitch:"240회(30개씩 8세트, 각자 4세트)", wallsit:"하이피치가 끝날 때까지 계속 진행" }
   }
 };
-// 보강/재활 밴드 루틴 (반복수 기반, 타이머 없이 카드로만 표시)
-const BAND_PRESETS = {
-  "보강 루틴 2-1":["neckband","backstretch","psoas","squat10","situp"],
-  "보강 루틴 2-2":["backband","backshoulderband","psoasband","supermanband","situp"],
-  "보강 루틴 2-3":["backband2","shoulderband2","shouldertriband","legraiseband","situp"]
-};
+const MODE_LABEL = {EMOM:"EMOM", AMRAP:"AMRAP", FORTIME:"포타임(For Time)"};
+
 
 /* =========================================================
    저장소 헬퍼
@@ -652,64 +490,54 @@ function todayStr(){
 ========================================================= */
 let state = {
   tab: "wod",
-  wod: null,           // {title, ids:[...], tabata?:{work,rest}, setsMap?:{id: number|string[]}}
-  progress: {},        // {exId: true}
+  sessionKey: "1차시",
+  wod: null,             // {sessionKey, title, mode, label, capMinutes, partner, ids, notes}
+  progress: {},          // {exId: true}
   loading: true,
   followMode: false,
+  followKind: null,      // 'video' | 'emom' | 'amrap' | 'fortime'
   followIdx: 0,
-  openVideo: {},        // {exId: bool}
+  openVideo: {},
   evalPerformer:"",
   evalObserverBan:"1", evalObserverBeon:"1", evalObserverName:"", evalCha:"1",
   rosterCha:"1",
-  evalSubmissions: null, // 교사모드 동료평가 제출 현황 캐시
-  evalLastSummary: null, // 방금 제출한 동료평가의 3줄 요약 {performer, lines}
-  evalAnswers:{},        // {exId:{qIdx:'yes'|'no'}}
+  evalSubmissions: null,
+  evalLastSummary: null,
+  evalAnswers:{},
   toast:null,
-  teacherCustom: {},    // {exId: reps}
-  timer: null,          // {phase:'work'|'rest', remaining, setIdx, intervalId, running}
-  followTimerConfig: null, // {work, rest} - 팔로우 모드에서 타이머 사용 시 설정 (null이면 영상 모드)
-  musicOn: true, // 타이머 모드 배경음악 on/off
+  musicOn: true,
 
-  // 기록 대결 (1차시 서킷 크로스핏 스타일 AMRAP 기록)
+  // 타이머 엔진 상태
+  emom: null,       // {round, totalRounds, exIdx, remaining, running, intervalId}
+  amrap: null,      // {remaining, running, rounds, intervalId}
+  stopwatch: null,  // {elapsed, running, intervalId}
+
+  // 기록 대결
   recordName: "",
   recordBan: "1",
   recordBeon: "1",
-  recordReps: "",
-  leaderboardCache: null,  // [{student_name, class_group, record_value, created_at}, ...]
+  recordValue: "",   // AMRAP/EMOM: 총 라운드(횟수)
+  recordMin: "",     // FORTIME: 분
+  recordSec: "",     // FORTIME: 초
+  leaderboardCache: null,
+  leaderboardSessionKey: null,
   rtSubscribed: false
 };
-const RECORD_EXERCISE_ID = "circuit_1cha";
-const RECORD_EXERCISE_NAME = "1차시 서킷 트레이닝(전체 6종목 완주)";
 
-function setsCountOf(v){
-  return Array.isArray(v) ? v.length : (typeof v === "number" ? v : 1);
+function buildWodFromSession(key){
+  const s = SESSIONS[key];
+  return {
+    sessionKey: key,
+    title: key,
+    mode: s.mode,
+    label: s.label,
+    capMinutes: s.capMinutes,
+    partner: !!s.partner,
+    ids: s.ids,
+    notes: s.notes
+  };
 }
-function setLabelOf(v, i){
-  return Array.isArray(v) ? v[i] : (i+1)+"세트";
-}
-function formatTargetFor(id){
-  const map = state.wod.setsMap;
-  if(map && map[id] !== undefined){
-    const v = map[id];
-    if(Array.isArray(v)) return v.join("·")+" (각 20초)";
-    return "20초×"+v+"세트";
-  }
-  return LIB[id].target;
-}
-function getSetsInfoFor(id){
-  const map = state.wod.setsMap;
-  if(map && map[id] !== undefined) return map[id];
-  return 3; // 기본값: 세트수 3
-}
-function getProgressArray(id){
-  const count = setsCountOf(getSetsInfoFor(id));
-  let arr = state.progress[id];
-  if(!Array.isArray(arr) || arr.length !== count){
-    arr = new Array(count).fill(false);
-    state.progress[id] = arr;
-  }
-  return arr;
-}
+
 let sharedAudioCtx = null;
 function getAudioCtx(){
   if(!sharedAudioCtx){
@@ -806,7 +634,8 @@ function toggleWorkoutMusic(){
 async function loadAll(){
   const wod = await storeGet("wod:" + todayStr(), true);
   const progress = await storeGet("progress:" + todayStr(), false);
-  state.wod = wod || { title:"1차시 · 기본 서킷", ids: PRESETS["1차시"] };
+  state.wod = wod || buildWodFromSession("1차시");
+  state.sessionKey = state.wod.sessionKey || "1차시";
   state.progress = progress || {};
   state.loading = false;
   render();
@@ -887,26 +716,24 @@ function renderTopbar(){
 function renderWodTab(){
   const box = document.createElement("div");
   const ids = state.wod.ids;
-  const doneCount = ids.filter(id=>{
-    const arr = getProgressArray(id);
-    return arr.length>0 && arr.every(Boolean);
-  }).length;
+  const s = state.wod;
+  const doneCount = ids.filter(id=>state.progress[id]).length;
 
   const hero = document.createElement("div");
   hero.className="hero";
-  const isTabata = !!state.wod.tabata;
-  const restChip = isTabata
-    ? `<div class="meta-chip"><b>${state.wod.tabata.work}s/${state.wod.tabata.rest}s</b><span>운동/휴식</span></div>`
-    : `<div class="meta-chip"><b>10초</b><span>동작 간 휴식</span></div>`;
+  const modeChip = `<div class="meta-chip"><b>${MODE_LABEL[s.mode]}</b><span>${s.mode==="AMRAP" ? s.capMinutes+"분 제한" : s.mode==="EMOM" ? "16분" : "시간 측정"}</span></div>`;
+  const partnerChip = s.partner ? `<div class="meta-chip"><b>2인 1조</b><span>파트너 워크아웃</span></div>` : "";
   hero.innerHTML = `
     <div class="hero-row">
       <div>
         <div class="wod-date">${todayStr().replaceAll("-",".")}</div>
-        <div class="wod-title">${state.wod.title}</div>
+        <div class="wod-title">${s.title}</div>
+        <div class="sub" style="margin:2px 0 10px;">${s.label}</div>
         <div class="wod-meta">
           <div class="meta-chip"><b>${ids.length}</b><span>동작</span></div>
           <div class="meta-chip"><b>${doneCount}/${ids.length}</b><span>완료</span></div>
-          ${restChip}
+          ${modeChip}
+          ${partnerChip}
         </div>
       </div>
     </div>
@@ -917,46 +744,42 @@ function renderWodTab(){
   btnRow.style.gap="10px";
   btnRow.style.flexWrap="wrap";
 
-  if(isTabata){
-    const startBtn = document.createElement("button");
-    startBtn.className="btn btn-primary";
-    startBtn.textContent="▶ 다함께 시작 (팔로우 모드)";
-    startBtn.onclick = ()=>{
-      state.followMode=true; state.followIdx=0;
-      state.followTimerConfig = state.wod.tabata;
-      initTimerForCurrentExercise();
-      startWorkoutMusic();
-      render();
-    };
-    btnRow.appendChild(startBtn);
-  } else {
-    const videoBtn = document.createElement("button");
-    videoBtn.className="btn btn-ghost";
-    videoBtn.textContent="▶ 영상 보기 모드";
-    videoBtn.onclick = ()=>{
-      state.followMode=true; state.followIdx=0;
-      state.followTimerConfig = null;
-      render();
-    };
-    btnRow.appendChild(videoBtn);
+  const videoBtn = document.createElement("button");
+  videoBtn.className="btn btn-ghost";
+  videoBtn.textContent="▶ 영상 보기 모드";
+  videoBtn.onclick = ()=>{
+    state.followMode=true; state.followIdx=0; state.followKind="video";
+    render();
+  };
+  btnRow.appendChild(videoBtn);
 
-    const timerBtn = document.createElement("button");
-    timerBtn.className="btn btn-primary";
-    timerBtn.textContent="⏱ 타이머 모드 (30초 운동/10초 휴식)";
+  const timerBtn = document.createElement("button");
+  timerBtn.className="btn btn-primary";
+  if(s.mode==="EMOM"){
+    timerBtn.textContent="⏱ EMOM 시작 (16분)";
     timerBtn.onclick = ()=>{
-      state.followMode=true; state.followIdx=0;
-      state.followTimerConfig = { work:30, rest:10 };
-      initTimerForCurrentExercise();
-      startWorkoutMusic();
-      render();
+      state.followMode=true; state.followKind="emom";
+      initEmom(); startWorkoutMusic(); render();
     };
-    btnRow.appendChild(timerBtn);
+  } else if(s.mode==="AMRAP"){
+    timerBtn.textContent=`⏱ AMRAP ${s.capMinutes}분 시작`;
+    timerBtn.onclick = ()=>{
+      state.followMode=true; state.followKind="amrap";
+      initAmrap(); startWorkoutMusic(); render();
+    };
+  } else {
+    timerBtn.textContent="⏱ 스톱워치 시작 (포타임)";
+    timerBtn.onclick = ()=>{
+      state.followMode=true; state.followKind="fortime";
+      initStopwatch(); startWorkoutMusic(); render();
+    };
   }
+  btnRow.appendChild(timerBtn);
   hero.appendChild(btnRow);
   box.appendChild(hero);
 
   const eyebrow = document.createElement("div");
-  eyebrow.className="eyebrow"; eyebrow.textContent="오늘의 순서";
+  eyebrow.className="eyebrow"; eyebrow.textContent="오늘의 동작";
   box.appendChild(eyebrow);
 
   const list = document.createElement("div");
@@ -970,10 +793,8 @@ function renderWodTab(){
 
 function renderExCard(id, i){
   const ex = LIB[id];
-  const setsInfo = getSetsInfoFor(id);
-  const setsCount = setsCountOf(setsInfo);
-  const arr = getProgressArray(id);
-  const done = arr.length>0 && arr.every(Boolean);
+  const note = (state.wod.notes && state.wod.notes[id]) || "";
+  const done = !!state.progress[id];
   const card = document.createElement("div");
   card.className = "ex-card" + (done?" done":"");
 
@@ -981,33 +802,19 @@ function renderExCard(id, i){
   top.className="ex-top";
   top.innerHTML = `
     <div class="ex-index">${String(i+1).padStart(2,"0")}</div>
-    <div class="ex-name">${ex.name}${ex.equipment?`<span class="badge">${ex.equipment}</span>`:""}</div>
-    <div class="ex-target">${formatTargetFor(id)}</div>
+    <div class="ex-name">${ex.name}</div>
+    <div class="ex-target">${note}</div>
   `;
+  const checkBtn = document.createElement("button");
+  checkBtn.className="check-btn";
+  checkBtn.innerHTML = done ? "✓" : "";
+  checkBtn.onclick = async ()=>{
+    state.progress[id] = !state.progress[id];
+    await storeSet("progress:" + todayStr(), state.progress, false);
+    render();
+  };
+  top.appendChild(checkBtn);
   card.appendChild(top);
-
-  const setsRow = document.createElement("div");
-  setsRow.className="sets-row";
-  const setsLabel = document.createElement("div");
-  setsLabel.className="sets-label";
-  setsLabel.textContent = "세트수: " + setsCount;
-  setsRow.appendChild(setsLabel);
-  const setsBoxes = document.createElement("div");
-  setsBoxes.className="sets-boxes";
-  for(let s=0; s<setsCount; s++){
-    const box = document.createElement("button");
-    box.className = "set-box" + (arr[s] ? " on" : "");
-    box.textContent = setLabelOf(setsInfo, s);
-    box.title = setLabelOf(setsInfo, s) + " 완료 체크";
-    box.onclick = async ()=>{
-      arr[s] = !arr[s];
-      await storeSet("progress:" + todayStr(), state.progress, false);
-      render();
-    };
-    setsBoxes.appendChild(box);
-  }
-  setsRow.appendChild(setsBoxes);
-  card.appendChild(setsRow);
 
   const body = document.createElement("div");
   body.className="ex-body";
@@ -1046,193 +853,299 @@ function renderVideoBlock(ex){
 }
 
 /* =========================================================
-   팔로우 모드 (다함께 시작) - 분기
+   팔로우 모드 - 분기 (영상 / EMOM / AMRAP / 포타임 스톱워치)
 ========================================================= */
 function renderFollowOverlay(){
-  return state.followTimerConfig ? renderTabataOverlay() : renderManualOverlay();
+  if(state.followKind==="emom") return renderEmomOverlay();
+  if(state.followKind==="amrap") return renderAmrapOverlay();
+  if(state.followKind==="fortime") return renderStopwatchOverlay();
+  return renderManualOverlay();
 }
 
-/* ---- 타이머 관리 (타바타 프리셋 전용) ---- */
-function clearTimerInterval(){
-  if(state.timer && state.timer.intervalId){ clearInterval(state.timer.intervalId); state.timer.intervalId=null; }
-}
-function initTimerForCurrentExercise(){
-  const id = state.wod.ids[state.followIdx];
-  const setsVal = getSetsInfoFor(id);
-  clearTimerInterval();
-  state.timer = {
-    setIdx: 0,
-    totalSets: setsCountOf(setsVal),
-    setsVal,
-    phase: "work",
-    remaining: state.followTimerConfig.work,
-    running: true
-  };
-  state.timer.intervalId = setInterval(tabataTick, 1000);
-}
-function tabataTick(){
-  if(!state.timer || !state.timer.running) return;
-  state.timer.remaining -= 1;
-  if(state.timer.remaining <= 0){
-    beep(880,0.15);
-    advanceTabataPhase();
-    if(state.followMode) render();
-  } else {
-    if(state.timer.remaining <= 3) beep(660,0.08);
-    const numEl = document.getElementById("timerNum");
-    if(numEl) numEl.textContent = state.timer.remaining;
-  }
-}
-function advanceTabataPhase(){
-  const t = state.timer;
-  if(!t) return;
-  if(t.phase === "work"){
-    t.phase = "rest";
-    t.remaining = state.followTimerConfig.rest;
-    return;
-  }
-  // rest finished -> next set or next exercise
-  t.setIdx += 1;
-  if(t.setIdx < t.totalSets){
-    t.phase = "work";
-    t.remaining = state.followTimerConfig.work;
-    return;
-  }
-  const id = state.wod.ids[state.followIdx];
-  const arrDone = getProgressArray(id);
-  arrDone.fill(true);
-  storeSet("progress:" + todayStr(), state.progress, false);
-  if(state.followIdx < state.wod.ids.length - 1){
-    state.followIdx += 1;
-    initTimerForCurrentExercise();
-  } else {
-    clearTimerInterval();
-    state.timer = null;
-    state.followMode = false;
-    state.followTimerConfig = null;
-    stopWorkoutMusic();
-    showToast("오늘의 WOD 완료! 수고했어요 💪");
-  }
+function clearAllTimers(){
+  if(state.emom && state.emom.intervalId){ clearInterval(state.emom.intervalId); }
+  if(state.amrap && state.amrap.intervalId){ clearInterval(state.amrap.intervalId); }
+  if(state.stopwatch && state.stopwatch.intervalId){ clearInterval(state.stopwatch.intervalId); }
 }
 function closeFollow(){
-  clearTimerInterval();
-  state.timer = null;
-  state.followMode = false;
-  state.followTimerConfig = null;
+  clearAllTimers();
+  state.emom = null; state.amrap = null; state.stopwatch = null;
+  state.followMode = false; state.followKind = null; state.followIdx = 0;
   stopWorkoutMusic();
   render();
 }
 
-function renderTabataOverlay(){
+/* ---------- EMOM ---------- */
+function initEmom(){
+  clearAllTimers();
+  state.emom = { round:1, totalRounds:4, exIdx:0, remaining:60, running:true, intervalId:null };
+  state.emom.intervalId = setInterval(emomTick, 1000);
+}
+function emomTick(){
+  const e = state.emom; if(!e || !e.running) return;
+  e.remaining -= 1;
+  if(e.remaining <= 0){
+    beep(880,0.15);
+    e.exIdx += 1;
+    if(e.exIdx >= state.wod.ids.length){
+      e.exIdx = 0; e.round += 1;
+    }
+    if(e.round > e.totalRounds){
+      clearAllTimers();
+      state.emom = null; state.followMode=false; state.followKind=null;
+      stopWorkoutMusic();
+      showToast("EMOM 완료! 수고했어요 💪");
+      return;
+    }
+    e.remaining = 60;
+    render();
+  } else {
+    if(e.remaining<=3) beep(660,0.08);
+    const numEl = document.getElementById("timerNum");
+    if(numEl) numEl.textContent = e.remaining;
+  }
+}
+function renderEmomOverlay(){
+  const e = state.emom;
   const ids = state.wod.ids;
-  const id = ids[state.followIdx];
+  const id = ids[e.exIdx];
   const ex = LIB[id];
-  const t = state.timer;
-  const ov = document.createElement("div");
-  ov.className="follow-overlay";
+  const note = (state.wod.notes && state.wod.notes[id]) || "";
 
-  const top = document.createElement("div");
-  top.className="follow-top";
-  top.innerHTML = `<div class="eyebrow" style="margin:0;">다함께 시작 · ${state.wod.title}</div>`;
-  const closeBtn = document.createElement("button");
-  closeBtn.className="follow-close"; closeBtn.textContent="닫기 ✕";
+  const ov = document.createElement("div"); ov.className="follow-overlay";
+  const top = document.createElement("div"); top.className="follow-top";
+  top.innerHTML = `<div class="eyebrow" style="margin:0;">EMOM · ${state.wod.title}</div>`;
+  const closeBtn = document.createElement("button"); closeBtn.className="follow-close"; closeBtn.textContent="닫기 ✕";
   closeBtn.onclick = closeFollow;
   top.appendChild(closeBtn);
   ov.appendChild(top);
 
-  const prog = document.createElement("div");
-  prog.className="follow-progress";
-  ids.forEach((_,i)=>{
+  const prog = document.createElement("div"); prog.className="follow-progress";
+  for(let r=1;r<=e.totalRounds;r++){
     const d=document.createElement("div");
-    d.className="dot"+(i<=state.followIdx?" on":"");
+    d.className="dot"+(r<e.round || (r===e.round) ?" on":"");
     prog.appendChild(d);
-  });
+  }
   ov.appendChild(prog);
 
-  const body = document.createElement("div");
-  body.className="follow-body";
-
-  const idxLine = document.createElement("div");
-  idxLine.className="follow-idx";
-  idxLine.textContent = `동작 ${state.followIdx+1} / ${ids.length}`;
-  body.appendChild(idxLine);
-
-  const nameEl = document.createElement("div");
-  nameEl.className="follow-name"; nameEl.textContent = ex.name;
-  body.appendChild(nameEl);
+  const body = document.createElement("div"); body.className="follow-body";
+  body.innerHTML = `<div class="follow-idx">라운드 ${e.round} / ${e.totalRounds} · 동작 ${e.exIdx+1} / ${ids.length}</div>
+    <div class="follow-name">${ex.name}</div>
+    <div class="follow-target">${note}</div>`;
 
   const phaseLabel = document.createElement("div");
-  phaseLabel.className = "timer-phase " + t.phase;
-  phaseLabel.textContent = t.phase === "work" ? "운동 " + setLabelOf(t.setsVal, t.setIdx) : "휴식";
+  phaseLabel.className = "timer-phase work";
+  phaseLabel.textContent = "1분 진행";
   body.appendChild(phaseLabel);
 
   const numEl = document.createElement("div");
-  numEl.className = "timer-num " + t.phase;
-  numEl.id = "timerNum";
-  numEl.textContent = t.remaining;
+  numEl.className = "timer-num work"; numEl.id="timerNum"; numEl.textContent = e.remaining;
   body.appendChild(numEl);
 
-  const subEl = document.createElement("div");
-  subEl.className="timer-sub";
-  subEl.textContent = `세트 ${t.setIdx+1} / ${t.totalSets}`;
-  body.appendChild(subEl);
-
-  const pills = document.createElement("div");
-  pills.className="set-pills";
-  for(let i=0;i<t.totalSets;i++){
-    const p=document.createElement("div");
-    p.className="set-pill"+(i<t.setIdx || (i===t.setIdx && t.phase==="rest") ?" on":"");
-    pills.appendChild(p);
-  }
-  body.appendChild(pills);
-
-  const cautions = document.createElement("ul");
-  cautions.className="cautions follow-cautions";
+  const cautions = document.createElement("ul"); cautions.className="cautions follow-cautions";
   ex.cautions.forEach(c=>{ const li=document.createElement("li"); li.textContent=c; cautions.appendChild(li); });
   body.appendChild(cautions);
 
-  const controls = document.createElement("div");
-  controls.className="timer-controls";
-  const musicBtn = document.createElement("button");
-  musicBtn.className="btn btn-ghost";
+  const controls = document.createElement("div"); controls.className="timer-controls";
+  const musicBtn = document.createElement("button"); musicBtn.className="btn btn-ghost";
   musicBtn.textContent = state.musicOn ? "🎵 음악 끄기" : "🔇 음악 켜기";
   musicBtn.onclick = ()=>{ toggleWorkoutMusic(); render(); };
   controls.appendChild(musicBtn);
-  const pauseBtn = document.createElement("button");
-  pauseBtn.className="btn btn-ghost";
-  pauseBtn.textContent = t.running ? "일시정지" : "재개";
-  pauseBtn.onclick = ()=>{
-    t.running = !t.running;
-    if(t.running){ startWorkoutMusic(); } else { stopWorkoutMusic(); }
-    render();
-  };
+  const pauseBtn = document.createElement("button"); pauseBtn.className="btn btn-ghost";
+  pauseBtn.textContent = e.running ? "일시정지" : "재개";
+  pauseBtn.onclick = ()=>{ e.running=!e.running; if(e.running) startWorkoutMusic(); else stopWorkoutMusic(); render(); };
   controls.appendChild(pauseBtn);
-  const skipBtn = document.createElement("button");
-  skipBtn.className="btn btn-ghost";
-  skipBtn.textContent = "다음 동작으로 건너뛰기 ▶";
-  skipBtn.onclick = ()=>{
-    getProgressArray(id).fill(true);
-    storeSet("progress:" + todayStr(), state.progress, false);
-    if(state.followIdx < ids.length-1){ state.followIdx++; initTimerForCurrentExercise(); render(); }
-    else { closeFollow(); showToast("오늘의 WOD 완료! 수고했어요 💪"); }
-  };
-  controls.appendChild(skipBtn);
   body.appendChild(controls);
 
   ov.appendChild(body);
   return ov;
 }
 
+/* ---------- AMRAP ---------- */
+function initAmrap(){
+  clearAllTimers();
+  state.amrap = { remaining: state.wod.capMinutes*60, running:true, rounds:0, intervalId:null };
+  state.amrap.intervalId = setInterval(amrapTick, 1000);
+}
+function amrapTick(){
+  const a = state.amrap; if(!a || !a.running) return;
+  a.remaining -= 1;
+  if(a.remaining <= 0){
+    beep(880,0.2); beep(660,0.2);
+    clearAllTimers();
+    state.amrap.running = false;
+    stopWorkoutMusic();
+    render();
+    showToast(`타임업! 총 ${a.rounds}라운드 완료 🎉`);
+  } else {
+    if(a.remaining<=3) beep(660,0.08);
+    const numEl = document.getElementById("timerNum");
+    if(numEl) numEl.textContent = formatMinSec(a.remaining);
+  }
+}
+function formatMinSec(totalSec){
+  const m = Math.floor(totalSec/60), s = totalSec%60;
+  return `${m}:${String(s).padStart(2,"0")}`;
+}
+function renderAmrapOverlay(){
+  const a = state.amrap;
+  const ids = state.wod.ids;
+
+  const ov = document.createElement("div"); ov.className="follow-overlay";
+  const top = document.createElement("div"); top.className="follow-top";
+  top.innerHTML = `<div class="eyebrow" style="margin:0;">AMRAP ${state.wod.capMinutes}분 · ${state.wod.title}</div>`;
+  const closeBtn = document.createElement("button"); closeBtn.className="follow-close"; closeBtn.textContent="닫기 ✕";
+  closeBtn.onclick = closeFollow;
+  top.appendChild(closeBtn);
+  ov.appendChild(top);
+
+  const body = document.createElement("div"); body.className="follow-body";
+  body.innerHTML = `<div class="follow-idx">${a.remaining>0 ? "진행 중" : "타임업"}</div>`;
+
+  const numEl = document.createElement("div");
+  numEl.className = "timer-num work"; numEl.id="timerNum";
+  numEl.textContent = formatMinSec(a.remaining);
+  body.appendChild(numEl);
+
+  const roundsLine = document.createElement("div");
+  roundsLine.className="timer-sub"; roundsLine.style.fontSize="16px"; roundsLine.style.marginBottom="14px";
+  roundsLine.id = "amrapRoundsLine";
+  roundsLine.textContent = `완료한 라운드: ${a.rounds}`;
+  body.appendChild(roundsLine);
+
+  const plusBtn = document.createElement("button");
+  plusBtn.className="btn btn-primary"; plusBtn.textContent="+1 라운드 완료";
+  plusBtn.disabled = !a.running;
+  plusBtn.onclick = ()=>{
+    a.rounds += 1;
+    const line = document.getElementById("amrapRoundsLine");
+    if(line) line.textContent = `완료한 라운드: ${a.rounds}`;
+  };
+  body.appendChild(plusBtn);
+
+  const refList = document.createElement("ul");
+  refList.className="cautions follow-cautions";
+  refList.style.marginTop="18px";
+  ids.forEach(id=>{
+    const ex = LIB[id];
+    const note = (state.wod.notes && state.wod.notes[id]) || "";
+    const li = document.createElement("li");
+    li.textContent = `${ex.name} - ${note}`;
+    refList.appendChild(li);
+  });
+  body.appendChild(refList);
+
+  const controls = document.createElement("div"); controls.className="timer-controls";
+  const musicBtn = document.createElement("button"); musicBtn.className="btn btn-ghost";
+  musicBtn.textContent = state.musicOn ? "🎵 음악 끄기" : "🔇 음악 켜기";
+  musicBtn.onclick = ()=>{ toggleWorkoutMusic(); render(); };
+  controls.appendChild(musicBtn);
+  if(a.running){
+    const pauseBtn = document.createElement("button"); pauseBtn.className="btn btn-ghost";
+    pauseBtn.textContent = "일시정지";
+    pauseBtn.onclick = ()=>{ a.running=false; clearAllTimers(); stopWorkoutMusic(); render(); };
+    controls.appendChild(pauseBtn);
+  } else if(a.remaining>0){
+    const resumeBtn = document.createElement("button"); resumeBtn.className="btn btn-ghost";
+    resumeBtn.textContent = "재개";
+    resumeBtn.onclick = ()=>{ a.running=true; state.amrap.intervalId=setInterval(amrapTick,1000); startWorkoutMusic(); render(); };
+    controls.appendChild(resumeBtn);
+  }
+  body.appendChild(controls);
+
+  ov.appendChild(body);
+  return ov;
+}
+
+/* ---------- 포타임 스톱워치 ---------- */
+function initStopwatch(){
+  clearAllTimers();
+  state.stopwatch = { elapsed:0, running:true, intervalId:null };
+  state.stopwatch.intervalId = setInterval(stopwatchTick, 1000);
+}
+function stopwatchTick(){
+  const sw = state.stopwatch; if(!sw || !sw.running) return;
+  sw.elapsed += 1;
+  const numEl = document.getElementById("timerNum");
+  if(numEl) numEl.textContent = formatMinSec(sw.elapsed);
+}
+function renderStopwatchOverlay(){
+  const sw = state.stopwatch;
+  const ids = state.wod.ids;
+
+  const ov = document.createElement("div"); ov.className="follow-overlay";
+  const top = document.createElement("div"); top.className="follow-top";
+  top.innerHTML = `<div class="eyebrow" style="margin:0;">포타임 · ${state.wod.title}</div>`;
+  const closeBtn = document.createElement("button"); closeBtn.className="follow-close"; closeBtn.textContent="닫기 ✕";
+  closeBtn.onclick = closeFollow;
+  top.appendChild(closeBtn);
+  ov.appendChild(top);
+
+  const body = document.createElement("div"); body.className="follow-body";
+  body.innerHTML = `<div class="follow-idx">${sw.running ? "측정 중" : "정지됨"}</div>`;
+
+  const numEl = document.createElement("div");
+  numEl.className = "timer-num work"; numEl.id="timerNum";
+  numEl.textContent = formatMinSec(sw.elapsed);
+  body.appendChild(numEl);
+
+  const refList = document.createElement("ul");
+  refList.className="cautions follow-cautions";
+  ids.forEach(id=>{
+    const ex = LIB[id];
+    const note = (state.wod.notes && state.wod.notes[id]) || "";
+    const li = document.createElement("li");
+    li.textContent = `${ex.name} - ${note}`;
+    refList.appendChild(li);
+  });
+  body.appendChild(refList);
+
+  const controls = document.createElement("div"); controls.className="timer-controls";
+  const musicBtn = document.createElement("button"); musicBtn.className="btn btn-ghost";
+  musicBtn.textContent = state.musicOn ? "🎵 음악 끄기" : "🔇 음악 켜기";
+  musicBtn.onclick = ()=>{ toggleWorkoutMusic(); render(); };
+  controls.appendChild(musicBtn);
+  if(sw.running){
+    const stopBtn = document.createElement("button"); stopBtn.className="btn btn-ghost";
+    stopBtn.textContent = "정지";
+    stopBtn.onclick = ()=>{ sw.running=false; clearAllTimers(); stopWorkoutMusic(); render(); };
+    controls.appendChild(stopBtn);
+  } else {
+    const resumeBtn = document.createElement("button"); resumeBtn.className="btn btn-ghost";
+    resumeBtn.textContent = "재개";
+    resumeBtn.onclick = ()=>{ sw.running=true; state.stopwatch.intervalId=setInterval(stopwatchTick,1000); startWorkoutMusic(); render(); };
+    controls.appendChild(resumeBtn);
+  }
+  body.appendChild(controls);
+
+  const goRecordBtn = document.createElement("button");
+  goRecordBtn.className="btn btn-primary"; goRecordBtn.style.marginTop="10px";
+  goRecordBtn.textContent="🔥 이 시간으로 기록 등록하러 가기";
+  goRecordBtn.onclick = ()=>{
+    const m = Math.floor(sw.elapsed/60), s2 = sw.elapsed%60;
+    state.recordMin = String(m); state.recordSec = String(s2);
+    closeFollow();
+    state.tab = "record";
+    render();
+  };
+  body.appendChild(goRecordBtn);
+
+  ov.appendChild(body);
+  return ov;
+}
+
+/* ---------- 영상 보기 모드 (수동) ---------- */
 function renderManualOverlay(){
   const ids = state.wod.ids;
   const id = ids[state.followIdx];
   const ex = LIB[id];
+  const note = (state.wod.notes && state.wod.notes[id]) || "";
   const ov = document.createElement("div");
   ov.className="follow-overlay";
 
   const top = document.createElement("div");
   top.className="follow-top";
-  top.innerHTML = `<div class="eyebrow" style="margin:0;">다함께 시작 · ${state.wod.title}</div>`;
+  top.innerHTML = `<div class="eyebrow" style="margin:0;">영상 보기 모드 · ${state.wod.title}</div>`;
   const closeBtn = document.createElement("button");
   closeBtn.className="follow-close"; closeBtn.textContent="닫기 ✕";
   closeBtn.onclick = closeFollow;
@@ -1253,14 +1166,14 @@ function renderManualOverlay(){
   body.innerHTML = `
     <div class="follow-idx">동작 ${state.followIdx+1} / ${ids.length}</div>
     <div class="follow-name">${ex.name}</div>
-    <div class="follow-target">목표 ${ex.target}</div>
+    <div class="follow-target">${note}</div>
   `;
   const vid = ex.videoId
     ? (()=>{ const v=document.createElement("div"); v.className="follow-video";
         v.innerHTML=`<iframe src="https://www.youtube.com/embed/${ex.videoId}" title="${ex.name}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
         return v; })()
-    : (()=>{ const v=document.createElement("div"); v.className="follow-video";
-        v.appendChild(renderVideoBlock(ex)); v.style.paddingTop="0"; v.style.background="transparent"; return v; })();
+    : (()=>{ const v=document.createElement("div"); v.className="follow-video"; v.style.paddingTop="0"; v.style.background="transparent";
+        v.appendChild(renderVideoBlock(ex)); return v; })();
   body.appendChild(vid);
 
   const cautions = document.createElement("ul");
@@ -1280,10 +1193,10 @@ function renderManualOverlay(){
   const next=document.createElement("button");
   next.className="btn btn-primary"; next.textContent=nextLabel;
   next.onclick = async ()=>{
-    getProgressArray(id).fill(true);
+    state.progress[id]=true;
     await storeSet("progress:" + todayStr(), state.progress, false);
     if(state.followIdx < ids.length-1){ state.followIdx++; render(); }
-    else { state.followMode=false; showToast("오늘의 WOD 완료! 수고했어요 💪"); }
+    else { closeFollow(); showToast("영상 확인 완료! 수고했어요 💪"); }
   };
   nav.appendChild(next);
   body.appendChild(nav);
@@ -1292,135 +1205,81 @@ function renderManualOverlay(){
   return ov;
 }
 
+
 /* =========================================================
    동료평가지 탭
 ========================================================= */
-// 동료평가 제출 1건을 구글시트 행(동작 단위)으로 변환
-// 컬럼: 날짜, 차시, 관찰자반, 관찰자번호, 관찰자이름, 수행자이름, WOD, 동작명, 항목별점수, 평균점수, 제출시각
+// 동료평가 제출 1건을 구글시트 행으로 변환 (정의적 영역 5개 항목 - 동작 구분 없음)
+// 컬럼: 날짜, 차시, 평가자반, 평가자번호, 평가자이름, 평가대상자(친구)이름, WOD, 항목별점수, 평균점수, 제출시각
 function buildEvalSheetRows(payload){
-  const rows = [];
+  const scores = AFFECTIVE_CHECKLIST.map((q,qi)=> (typeof payload.answers[qi]==="number" ? payload.answers[qi] : "")).filter(v=>v!=="");
+  if(scores.length===0) return [];
+  const avg = scores.reduce((x,y)=>x+y,0) / scores.length;
   const tsIso = new Date(payload.ts).toISOString();
-  Object.keys(payload.answers).forEach(exId=>{
-    const ex = LIB[exId];
-    if(!ex) return;
-    const a = payload.answers[exId];
-    const scores = ex.checklist.map((q,qi)=> (typeof a[qi]==="number" ? a[qi] : "")).filter(v=>v!=="");
-    if(scores.length===0) return;
-    const avg = scores.reduce((x,y)=>x+y,0) / scores.length;
-    rows.push([
-      payload.date, payload.cha, payload.observerBan, payload.observerBeon,
-      payload.observerName, payload.performer, payload.wodTitle, ex.name,
-      scores.join(","), avg.toFixed(1), tsIso
-    ]);
-  });
-  return rows;
+  return [[
+    payload.date, payload.cha, payload.observerBan, payload.observerBeon,
+    payload.observerName, payload.performer, payload.wodTitle,
+    scores.join(","), avg.toFixed(1), tsIso
+  ]];
 }
 
-function generateFeedbackSummary(answers, evalIds){
-  let totalScore=0, totalCount=0;
-  const perEx = []; // {id, name, avg, total, items:[{q,score}], lowItems, highItems}
-  evalIds.forEach(id=>{
-    const a = answers[id];
-    if(!a) return;
-    const ex = LIB[id];
-    let sum=0, total=0; const items=[], lowItems=[], highItems=[];
-    ex.checklist.forEach((q,qi)=>{
-      const v = a[qi];
-      if(typeof v !== "number") return;
-      total++; sum += v;
-      items.push({q, score:v});
-      if(v<=3) lowItems.push({q, score:v});
-      if(v>=5) highItems.push({q, score:v});
-    });
-    if(total>0){
-      perEx.push({id, name:ex.name, avg: sum/total, total, items, lowItems, highItems});
-      totalScore += sum; totalCount += total;
-    }
-  });
+function generateFeedbackSummary(answers){
+  const items = AFFECTIVE_CHECKLIST
+    .map((q,qi)=>({ q, score: answers[qi] }))
+    .filter(it=> typeof it.score === "number");
 
-  if(totalCount===0){
+  if(items.length===0){
     return [
       "아직 체크된 평가 항목이 없어요.",
-      "체크리스트를 하나 이상 눌러 평가한 뒤 제출해 주세요.",
-      "관찰자가 항목별로 1~5점을 눌러야 요약이 만들어져요.",
+      "항목마다 1~5점을 눌러 평가한 뒤 제출해 주세요.",
+      "평가자의 관찰이 친구에게 큰 도움이 됩니다.",
     ];
   }
 
+  const sum = items.reduce((a,b)=>a+b.score,0);
+  const avg = sum/items.length;
+  const sorted = items.slice().sort((a,b)=> b.score - a.score);
+  const best = sorted[0];
+  const worst = sorted[sorted.length-1];
+  const middleItems = items.filter(it=> it!==best && it!==worst);
+
   const lines = [];
-  const overallAvg = totalScore/totalCount;
-  const sortedByAvg = perEx.slice().sort((a,b)=> b.avg - a.avg);
-  const best = sortedByAvg[0];
-  const second = sortedByAvg[1];
-  const worst = sortedByAvg[sortedByAvg.length-1];
-  const spread = best.avg - worst.avg;
 
   // 1. 전체 총평
-  lines.push(`총 ${evalIds.filter(id=>answers[id]).length}개 동작, ${totalCount}개 평가 항목의 평균 점수는 ${overallAvg.toFixed(1)} / 5.0점이에요.`);
+  lines.push(`태도·인성(정의적) 영역 ${items.length}개 항목의 평균 점수는 ${avg.toFixed(1)} / 5.0점이에요.`);
 
   // 2. 전체 수준 코멘트
-  if(overallAvg>=4.5) lines.push("전반적으로 기준 동작을 매우 정확하게 수행하고 있어요. 훌륭해요!");
-  else if(overallAvg>=3.5) lines.push("전반적으로 양호한 자세를 유지하고 있고, 조금만 더 다듬으면 훨씬 좋아질 거예요.");
-  else if(overallAvg>=2.5) lines.push("기본적인 동작은 되고 있지만, 세부 자세에서 신경 쓸 부분이 몇 가지 보여요.");
-  else lines.push("아직 기준 자세를 따라가는 데 어려움이 있어 보여요. 천천히, 정확하게 연습해 봐요.");
+  if(avg>=4.5) lines.push("함께하는 태도가 정말 훌륭했어요. 학급 전체에 좋은 영향을 주고 있어요!");
+  else if(avg>=3.5) lines.push("전반적으로 좋은 태도로 함께 운동에 참여했어요.");
+  else if(avg>=2.5) lines.push("기본적인 참여 태도는 있었지만, 조금 더 적극적으로 참여하면 좋겠어요.");
+  else lines.push("함께하는 태도 면에서 좀 더 노력이 필요해 보여요.");
 
-  // 3. 가장 잘한 동작
-  if(best.avg>=4.5) lines.push(`특히 '${best.name}' 동작은 평균 ${best.avg.toFixed(1)}점으로 기준을 거의 완벽하게 충족했어요. 아주 좋아요!`);
-  else lines.push(`'${best.name}' 동작에서 평균 ${best.avg.toFixed(1)}점으로 가장 좋은 평가를 받았어요.`);
+  // 3~4. 가장 잘한 항목
+  lines.push(`가장 높은 평가를 받은 항목은 "${best.q}" 이에요. (${best.score}점)`);
+  if(best.score>=5) lines.push("이 부분은 이미 완벽하게 실천하고 있어요. 계속 유지해 보세요!");
+  else lines.push("이 부분에서 좋은 모습을 보여줬어요.");
 
-  // 4. 가장 잘한 동작의 구체적인 강점 항목
-  if(best.highItems.length>0){
-    lines.push(`특히 "${best.highItems[0].q}" 항목에서 만점(5점)을 받았어요.`);
+  // 5~6. 개선이 필요한 항목
+  if(worst.score < best.score){
+    lines.push(`상대적으로 낮은 평가를 받은 항목은 "${worst.q}" 이에요. (${worst.score}점)`);
+    if(worst.score<=2) lines.push("다음 시간에는 이 부분을 더 신경 써서 실천해 보면 좋겠어요.");
+    else lines.push("크게 부족하지는 않지만, 조금 더 챙기면 완벽해질 거예요.");
   } else {
-    lines.push(`'${best.name}' 동작은 큰 오차 없이 안정적으로 수행하고 있어요.`);
+    lines.push("모든 항목에서 고르게 좋은 평가를 받았어요.");
+    lines.push("특별히 부족한 부분이 없으니 지금의 태도를 계속 유지해 보세요.");
   }
 
-  // 5. 두 번째로 잘한 동작 (있는 경우)
-  if(second){
-    lines.push(`'${second.name}' 동작도 평균 ${second.avg.toFixed(1)}점으로 좋은 편이에요.`);
-  } else {
-    lines.push(`이번 시간은 '${best.name}' 한 동작을 집중적으로 평가했어요.`);
-  }
-
-  // 6. 동작 간 편차 코멘트
-  if(perEx.length>1){
-    if(spread>=1.5) lines.push(`동작별 점수 차이가 꽤 있는 편이에요(최고 ${best.avg.toFixed(1)}점, 최저 ${worst.avg.toFixed(1)}점). 약한 동작 위주로 연습해 보세요.`);
-    else lines.push(`동작별 점수 편차가 크지 않아 전반적으로 고르게 잘 수행하고 있어요.`);
-  } else {
-    lines.push(`다음 시간에는 다른 동작들도 함께 평가해 보면 더 정확한 비교가 가능할 거예요.`);
-  }
-
-  // 7. 개선이 필요한 동작
-  const needsWork = perEx.filter(e=>e.lowItems.length>0).sort((a,b)=> a.avg - b.avg)[0];
-  if(needsWork){
-    lines.push(`가장 신경 써야 할 동작은 '${needsWork.name}'이에요 (평균 ${needsWork.avg.toFixed(1)}점).`);
-  } else {
-    lines.push(`감점된 항목이 없어요. 지금처럼만 유지해도 좋아요.`);
-  }
-
-  // 8. 구체적인 미흡 항목 1
-  if(needsWork){
-    const sortedLow = needsWork.lowItems.slice().sort((a,b)=>a.score-b.score);
-    const worstItem = sortedLow[0];
-    lines.push(`특히 "${worstItem.q}" 부분에서 ${worstItem.score}점을 받았어요. 이 부분을 다음 시간에 다시 확인해 보세요.`);
-
-    // 9. 구체적인 미흡 항목 2 (있으면), 없으면 다른 개선 동작
-    if(sortedLow[1]){
-      lines.push(`"${sortedLow[1].q}" 항목도 ${sortedLow[1].score}점으로 함께 점검해 보면 좋겠어요.`);
-    } else {
-      const needsWork2 = perEx.filter(e=>e.id!==needsWork.id && e.lowItems.length>0).sort((a,b)=>a.avg-b.avg)[0];
-      if(needsWork2) lines.push(`'${needsWork2.name}' 동작도 평균 ${needsWork2.avg.toFixed(1)}점으로 함께 살펴보면 좋겠어요.`);
-      else lines.push(`나머지 항목들은 모두 기준을 잘 충족했어요.`);
-    }
-  } else {
-    lines.push(`모든 항목이 4점 이상으로, 큰 약점 없이 고르게 잘하고 있어요.`);
-    lines.push(`현재 수준을 유지하면서 반복 횟수나 속도를 조금씩 늘려보는 것도 좋겠어요.`);
-  }
+  // 7~9. 나머지 항목별 결과
+  middleItems.forEach(it=>{
+    lines.push(`"${it.q}" 항목은 ${it.score}점을 받았어요.`);
+  });
 
   // 10. 마무리 격려
-  lines.push(`동료의 관찰과 피드백을 참고해서, 다음 시간에는 오늘보다 한 단계 더 정확한 자세로 도전해 보세요!`);
+  lines.push("동료가 지켜본 오늘의 태도를 참고해서, 다음 시간엔 더 적극적이고 배려하는 모습을 보여줘요!");
 
   return lines.slice(0,10);
 }
+
 
 function renderEvalTab(){
   const box = document.createElement("div");
@@ -1452,28 +1311,28 @@ function renderEvalTab(){
   }
 
   const eyebrow=document.createElement("div"); eyebrow.className="eyebrow"; eyebrow.textContent="Peer Evaluation";
-  const h1=document.createElement("div"); h1.className="h1"; h1.textContent="동료평가지";
+  const h1=document.createElement("div"); h1.className="h1"; h1.textContent="동료평가지 (함께 점수 기준표)";
   const sub=document.createElement("div"); sub.className="sub";
-  sub.textContent="수행자와 관찰자가 2인 1조로 진행합니다. 관찰자는 아래 항목마다 1(전혀 아니다)~5(매우 그렇다) 중 하나를 눌러 평가해 주세요.";
+  sub.textContent="친구의 태도를 관찰하고, 아래 항목마다 1(전혀 아니다)~5(매우 그렇다) 중 하나를 눌러 평가해 주세요.";
   box.appendChild(eyebrow); box.appendChild(h1); box.appendChild(sub);
 
   const names = document.createElement("div");
   names.className="row2";
   names.innerHTML = `
-    <div class="field"><label>수행자 이름</label><input id="performerInput" type="text" placeholder="이름 입력" value="${state.evalPerformer}"/></div>
-    <div class="field"><label>관찰자 이름</label><input id="observerNameInput" type="text" placeholder="이름 입력" value="${state.evalObserverName}"/></div>
+    <div class="field"><label>친구 이름 (평가 대상자)</label><input id="performerInput" type="text" placeholder="이름 입력" value="${state.evalPerformer}"/></div>
+    <div class="field"><label>내 이름 (평가자)</label><input id="observerNameInput" type="text" placeholder="이름 입력" value="${state.evalObserverName}"/></div>
   `;
   box.appendChild(names);
 
   const obsClassRow = document.createElement("div");
   obsClassRow.className="row2";
   obsClassRow.innerHTML = `
-    <div class="field"><label>관찰자 반</label>
+    <div class="field"><label>내 반</label>
       <select id="obsBanInput">
         ${Array.from({length:12},(_,i)=>i+1).map(b=>`<option value="${b}" ${String(b)===state.evalObserverBan?"selected":""}>1학년 ${b}반</option>`).join("")}
       </select>
     </div>
-    <div class="field"><label>관찰자 번호</label>
+    <div class="field"><label>내 번호</label>
       <select id="obsBeonInput">
         ${Array.from({length:30},(_,i)=>i+1).map(n=>`<option value="${n}" ${String(n)===state.evalObserverBeon?"selected":""}>${n}번</option>`).join("")}
       </select>
@@ -1484,7 +1343,7 @@ function renderEvalTab(){
   const chaField = document.createElement("div"); chaField.className="field";
   chaField.innerHTML = `<label>차시</label>
     <select id="evalChaInput">
-      ${Array.from({length:10},(_,i)=>i+1).map(c=>`<option value="${c}" ${String(c)===state.evalCha?"selected":""}>${c}차시</option>`).join("")}
+      ${Array.from({length:8},(_,i)=>i+1).map(c=>`<option value="${c}" ${String(c)===state.evalCha?"selected":""}>${c}차시</option>`).join("")}
     </select>`;
   box.appendChild(chaField);
 
@@ -1501,51 +1360,39 @@ function renderEvalTab(){
     if(ch) ch.onchange = e=>state.evalCha=e.target.value;
   },0);
 
-  const evalIds = state.wod.ids.filter(id=>EVALUABLE.includes(id));
-  if(evalIds.length===0){
-    const empty=document.createElement("div"); empty.className="empty";
-    empty.textContent="오늘의 WOD에 동료평가 체크리스트가 있는 종목이 없어요. (팔벌려뛰기·암워킹·버피테스트·플랭크잭·러시안트위스트 중 하나를 포함해 보세요)";
-    box.appendChild(empty);
-    return box;
-  }
-
-  evalIds.forEach(id=>{
-    const ex = LIB[id];
-    if(!state.evalAnswers[id]) state.evalAnswers[id]={};
-    const card=document.createElement("div"); card.className="eval-card";
-    card.innerHTML = `<h3>${ex.name}</h3>`;
-    ex.checklist.forEach((q,qi)=>{
-      const row=document.createElement("div"); row.className="eval-item";
-      const qEl=document.createElement("div"); qEl.className="eval-q"; qEl.textContent=(qi+1)+". "+q;
-      const scale=document.createElement("div"); scale.className="scale5";
-      for(let s=1; s<=5; s++){
-        const b=document.createElement("button");
-        b.className="scale5-btn s"+s+(state.evalAnswers[id][qi]===s?" sel":"");
-        b.textContent=s;
-        b.title = SCALE_LABELS[s];
-        b.onclick=()=>{ state.evalAnswers[id][qi]=s; render(); };
-        scale.appendChild(b);
-      }
-      row.appendChild(qEl); row.appendChild(scale);
-      card.appendChild(row);
-    });
-    const scaleHint = document.createElement("div");
-    scaleHint.className="scale-hint";
-    scaleHint.textContent = "1(전혀 아니다) ~ 5(매우 그렇다)";
-    card.appendChild(scaleHint);
-    const answered = Object.values(state.evalAnswers[id]).filter(v=>typeof v==="number");
-    const avg = answered.length ? (answered.reduce((a,b)=>a+b,0)/answered.length) : 0;
-    const scoreLine=document.createElement("div"); scoreLine.className="eval-score";
-    scoreLine.textContent = answered.length ? `평균 ${avg.toFixed(1)} / 5.0점 (${answered.length}/${ex.checklist.length} 항목 응답)` : "아직 응답 없음";
-    card.appendChild(scoreLine);
-    box.appendChild(card);
+  const card=document.createElement("div"); card.className="eval-card";
+  card.innerHTML = `<h3>함께 점수 기준표 (동료 평가)</h3>`;
+  AFFECTIVE_CHECKLIST.forEach((q,qi)=>{
+    const row=document.createElement("div"); row.className="eval-item";
+    const qEl=document.createElement("div"); qEl.className="eval-q"; qEl.textContent=(qi+1)+". "+q;
+    const scale=document.createElement("div"); scale.className="scale5";
+    for(let s=1; s<=5; s++){
+      const b=document.createElement("button");
+      b.className="scale5-btn s"+s+(state.evalAnswers[qi]===s?" sel":"");
+      b.textContent=s;
+      b.title = SCALE_LABELS[s];
+      b.onclick=()=>{ state.evalAnswers[qi]=s; render(); };
+      scale.appendChild(b);
+    }
+    row.appendChild(qEl); row.appendChild(scale);
+    card.appendChild(row);
   });
+  const scaleHint = document.createElement("div");
+  scaleHint.className="scale-hint";
+  scaleHint.textContent = "1(전혀 아니다) ~ 5(매우 그렇다)";
+  card.appendChild(scaleHint);
+  const answered = Object.values(state.evalAnswers).filter(v=>typeof v==="number");
+  const avg = answered.length ? (answered.reduce((a,b)=>a+b,0)/answered.length) : 0;
+  const scoreLine=document.createElement("div"); scoreLine.className="eval-score";
+  scoreLine.textContent = answered.length ? `평균 ${avg.toFixed(1)} / 5.0점 (${answered.length}/${AFFECTIVE_CHECKLIST.length} 항목 응답)` : "아직 응답 없음";
+  card.appendChild(scoreLine);
+  box.appendChild(card);
 
   const submitBar=document.createElement("div"); submitBar.className="submit-bar";
   const submitBtn=document.createElement("button"); submitBtn.className="btn btn-primary"; submitBtn.textContent="동료평가 제출하기";
   submitBtn.onclick = async ()=>{
     if(!state.evalPerformer || !state.evalObserverName){
-      showToast("수행자·관찰자 이름을 입력해 주세요"); return;
+      showToast("친구 이름과 내 이름을 입력해 주세요"); return;
     }
     const payload = {
       date: todayStr(), performer: state.evalPerformer,
@@ -1557,7 +1404,7 @@ function renderEvalTab(){
     };
     await appendEvalToIndex(payload);
     postToSheet("eval", buildEvalSheetRows(payload));
-    const summaryLines = generateFeedbackSummary(state.evalAnswers, evalIds);
+    const summaryLines = generateFeedbackSummary(state.evalAnswers);
     state.evalLastSummary = { performer: state.evalPerformer, lines: summaryLines };
     showToast("동료평가가 제출되었어요 ✅");
     state.evalAnswers = {}; state.evalPerformer=""; state.evalObserverName="";
@@ -1588,7 +1435,7 @@ function renderEvalRoster(){
   const chaSel = document.createElement("select");
   chaSel.id="rosterChaInput";
   chaSel.style.cssText="background:var(--bg-panel-2);border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--text);font-size:13px;font-weight:700;";
-  for(let c=1;c<=10;c++){
+  for(let c=1;c<=8;c++){
     const opt=document.createElement("option"); opt.value=c; opt.textContent=c+"차시";
     if(String(c)===state.rosterCha) opt.selected=true;
     chaSel.appendChild(opt);
@@ -1661,110 +1508,36 @@ function renderTeacherTab(){
   const eyebrow=document.createElement("div"); eyebrow.className="eyebrow"; eyebrow.textContent="Teacher Mode";
   const h1=document.createElement("div"); h1.className="h1"; h1.textContent="오늘의 WOD 설정";
   const sub=document.createElement("div"); sub.className="sub";
-  sub.textContent="저장하면 모든 학생 화면의 '오늘의 WOD'가 바로 업데이트됩니다.";
+  sub.textContent="차시를 선택하면 모든 학생 화면의 '오늘의 WOD'가 바로 업데이트됩니다.";
   box.appendChild(eyebrow); box.appendChild(h1); box.appendChild(sub);
 
   box.appendChild(renderEvalRoster());
 
-  const eyebrow2=document.createElement("div"); eyebrow2.className="eyebrow"; eyebrow2.textContent="빠른 선택 (1~5차시 · 반복수 기반 서킷)";
-  box.appendChild(eyebrow2);
-  const grid=document.createElement("div"); grid.className="preset-grid";
-  Object.keys(PRESETS).forEach(name=>{
-    const b=document.createElement("button"); b.className="preset-btn"; b.textContent=name;
-    b.onclick = async ()=>{
-      const wod = { title: name+" · 서킷 트레이닝", ids: PRESETS[name] };
-      await storeSet("wod:"+todayStr(), wod, true);
-      state.wod = wod;
-      showToast(name+" 프리셋이 오늘의 WOD로 저장됐어요");
-      state.tab="wod"; render();
-    };
-    grid.appendChild(b);
-  });
-  box.appendChild(grid);
-
-  const eyebrowT=document.createElement("div"); eyebrowT.className="eyebrow"; eyebrowT.textContent="오늘의 운동 (타바타 20초/10초, 실시간 타이머 작동)";
+  const eyebrowT=document.createElement("div"); eyebrowT.className="eyebrow"; eyebrowT.textContent="차시 선택 (1~8차시)";
   box.appendChild(eyebrowT);
   const gridT=document.createElement("div"); gridT.className="preset-grid";
-  Object.keys(TABATA_PRESETS).forEach(name=>{
-    const b=document.createElement("button"); b.className="preset-btn"; b.textContent=name;
+  Object.keys(SESSIONS).forEach(key=>{
+    const s = SESSIONS[key];
+    const b=document.createElement("button"); b.className="preset-btn";
+    b.innerHTML = `${key}<br/><span style="font-size:11px;color:var(--muted2);font-weight:500;">${MODE_LABEL[s.mode]}</span>`;
+    if(state.sessionKey === key) b.style.borderColor = "var(--accent)";
     b.onclick = async ()=>{
-      const preset = TABATA_PRESETS[name];
-      const ids = preset.exs.map(e=>e.id);
-      const setsMap = {}; preset.exs.forEach(e=>{ setsMap[e.id]=e.sets; });
-      const wod = { title: name, ids, tabata:{work:20, rest:10}, setsMap };
+      const wod = buildWodFromSession(key);
       await storeSet("wod:"+todayStr(), wod, true);
+      state.sessionKey = key;
       state.wod = wod;
-      showToast(name+"가 오늘의 WOD로 저장됐어요 (타이머 작동)");
+      state.leaderboardCache = null;
+      state.progress = {};
+      showToast(key+"가 오늘의 WOD로 저장됐어요");
       state.tab="wod"; render();
     };
     gridT.appendChild(b);
   });
   box.appendChild(gridT);
 
-  const eyebrowB=document.createElement("div"); eyebrowB.className="eyebrow"; eyebrowB.textContent="보강/재활 밴드 루틴 (반복수 기반)";
-  box.appendChild(eyebrowB);
-  const gridB=document.createElement("div"); gridB.className="preset-grid";
-  Object.keys(BAND_PRESETS).forEach(name=>{
-    const b=document.createElement("button"); b.className="preset-btn"; b.textContent=name;
-    b.onclick = async ()=>{
-      const wod = { title: name, ids: BAND_PRESETS[name] };
-      await storeSet("wod:"+todayStr(), wod, true);
-      state.wod = wod;
-      showToast(name+"이 오늘의 WOD로 저장됐어요");
-      state.tab="wod"; render();
-    };
-    gridB.appendChild(b);
-  });
-  box.appendChild(gridB);
-
-  const eyebrow3=document.createElement("div"); eyebrow3.className="eyebrow"; eyebrow3.textContent="직접 구성하기";
-  box.appendChild(eyebrow3);
-
-  const titleField=document.createElement("div"); titleField.className="field";
-  titleField.innerHTML = `<label>WOD 제목</label><input id="wodTitleInput" type="text" placeholder="예: 목요일 커스텀 서킷" />`;
-  box.appendChild(titleField);
-  setTimeout(()=>{
-    const t=document.getElementById("wodTitleInput");
-    if(t) t.oninput = e=>{ state._customTitle = e.target.value; };
-  },0);
-
-  const libGrid=document.createElement("div"); libGrid.className="lib-grid";
-  Object.entries(LIB).forEach(([id,ex])=>{
-    const checked = !!state.teacherCustom[id];
-    const item=document.createElement("div"); item.className="lib-item";
-    item.innerHTML = `
-      <input type="checkbox" ${checked?"checked":""} />
-      <div class="name">${ex.name}</div>
-      <input type="text" value="${state.teacherCustom[id]?.reps || ex.target}" />
-    `;
-    const cb = item.querySelector('input[type=checkbox]');
-    const repInput = item.querySelector('input[type=text]');
-    cb.onchange = ()=>{
-      if(cb.checked){ state.teacherCustom[id] = { reps: repInput.value }; }
-      else { delete state.teacherCustom[id]; }
-    };
-    repInput.oninput = ()=>{
-      if(state.teacherCustom[id]) state.teacherCustom[id].reps = repInput.value;
-    };
-    libGrid.appendChild(item);
-  });
-  box.appendChild(libGrid);
-
-  const saveBtn=document.createElement("button"); saveBtn.className="btn btn-primary"; saveBtn.textContent="이 구성을 오늘의 WOD로 저장";
-  saveBtn.onclick = async ()=>{
-    const ids = Object.keys(state.teacherCustom);
-    if(ids.length===0){ showToast("최소 1개 이상의 종목을 선택해 주세요"); return; }
-    ids.forEach(id=>{ LIB[id].target = state.teacherCustom[id].reps || LIB[id].target; });
-    const wod = { title: state._customTitle || "커스텀 WOD", ids };
-    await storeSet("wod:"+todayStr(), wod, true);
-    state.wod = wod;
-    showToast("오늘의 WOD로 저장했어요");
-    state.tab="wod"; render();
-  };
-  box.appendChild(saveBtn);
-
   return box;
 }
+
 
 /* =========================================================
    교사 모드 - 동료평가지 제출 현황 수합
@@ -1800,18 +1573,31 @@ async function fetchEvalSubmissions(){
 /* =========================================================
    기록 대결 (Supabase 실시간 리더보드)
 ========================================================= */
+function recordExerciseId(){ return "session_" + state.sessionKey; }
+function recordExerciseName(){ return state.wod.title + " (" + MODE_LABEL[state.wod.mode] + ")"; }
+function isFortimeSession(){ return state.wod && state.wod.mode === "FORTIME"; }
+
+function formatRecordValue(value, unit){
+  if(unit === "초"){
+    const v = Number(value);
+    const m = Math.floor(v/60), s = v%60;
+    return `${m}분 ${String(s).padStart(2,"0")}초`;
+  }
+  return `${value}회`;
+}
+
 async function fetchLeaderboard(){
-  if(!sb) return;
+  if(!sb || !state.wod) return;
   try{
     const { data, error } = await sb
       .from("wod_leaderboard")
       .select("*")
-      .eq("wod_date", todayStr())
-      .eq("exercise_id", RECORD_EXERCISE_ID)
-      .order("record_value", { ascending:false })
+      .eq("exercise_id", recordExerciseId())
+      .order("record_value", { ascending: isFortimeSession() })
       .limit(30);
     if(error){ console.error(error); return; }
     state.leaderboardCache = data || [];
+    state.leaderboardSessionKey = state.sessionKey;
     if(state.tab === "record") render();
   }catch(e){ console.error(e); }
 }
@@ -1822,50 +1608,64 @@ function subscribeRealtimeOnce(){
   sb.channel("wod-leaderboard-changes")
     .on("postgres_changes", { event:"INSERT", schema:"public", table:"wod_leaderboard" }, (payload)=>{
       const row = payload.new;
-      if(row.wod_date !== todayStr() || row.exercise_id !== RECORD_EXERCISE_ID) return;
+      if(row.exercise_id !== recordExerciseId()) return;
       const list = state.leaderboardCache || [];
       list.push(row);
-      list.sort((a,b)=> b.record_value - a.record_value);
+      if(isFortimeSession()) list.sort((a,b)=> a.record_value - b.record_value);
+      else list.sort((a,b)=> b.record_value - a.record_value);
       state.leaderboardCache = list.slice(0,30);
-      showToast(`${row.student_name} 님이 새 완주 기록을 등록했어요 🔥`);
+      showToast(`${row.student_name} 님이 새 기록을 등록했어요 🔥`);
     })
     .subscribe();
 }
 
 async function submitRecord(){
   if(!sb){ showToast("Supabase 연결에 문제가 있어요"); return; }
-  const reps = Number(state.recordReps);
-  if(!state.recordName || !reps || reps<=0){
-    showToast("이름과 총 수행 횟수를 입력해 주세요"); return;
+  if(!state.recordName){ showToast("이름을 입력해 주세요"); return; }
+
+  let value, unit;
+  if(isFortimeSession()){
+    const min = Number(state.recordMin) || 0;
+    const sec = Number(state.recordSec) || 0;
+    value = min*60 + sec; unit = "초";
+    if(value<=0){ showToast("완료 시간(분/초)을 입력해 주세요"); return; }
+  } else {
+    value = Number(state.recordValue);
+    unit = "회";
+    if(!value || value<=0){ showToast("총 라운드(또는 횟수)를 입력해 주세요"); return; }
   }
+
   const classGroup = `1학년 ${state.recordBan}반 ${state.recordBeon}번`;
   const payload = {
     wod_date: todayStr(),
     wod_title: state.wod.title,
-    exercise_id: RECORD_EXERCISE_ID,
-    exercise_name: RECORD_EXERCISE_NAME,
+    exercise_id: recordExerciseId(),
+    exercise_name: recordExerciseName(),
     student_name: state.recordName,
     class_group: classGroup,
-    record_value: reps,
-    record_unit: "회"
+    record_value: value,
+    record_unit: unit
   };
   const { error } = await sb.from("wod_leaderboard").insert(payload);
   if(error){ console.error(error); showToast("등록 중 오류가 발생했어요"); return; }
   postToSheet("record", [
-    [todayStr(), state.wod.title, classGroup, state.recordName, reps, new Date().toISOString()]
+    [todayStr(), state.wod.title, classGroup, state.recordName, value, unit, new Date().toISOString()]
   ]);
   showToast("기록이 등록됐어요! 실시간 반영 🔥");
-  state.recordReps = "";
+  state.recordValue = ""; state.recordMin = ""; state.recordSec = "";
   render();
 }
 
 function renderRecordTab(){
-  subscribeRealtimeOnce();
   const box = document.createElement("div");
+  const fortime = isFortimeSession();
+
   const eyebrow=document.createElement("div"); eyebrow.className="eyebrow"; eyebrow.textContent="Finisher · 정리운동 기록 대결";
-  const h1=document.createElement("div"); h1.className="h1"; h1.textContent="전교생 기록 대결 - 1차시 서킷";
+  const h1=document.createElement("div"); h1.className="h1"; h1.textContent=`전교생 기록 대결 - ${state.sessionKey}`;
   const sub=document.createElement("div"); sub.className="sub";
-  sub.textContent="정리운동 단계에서 정해진 시간 동안 1차시 서킷 트레이닝 6종목을 최대한 많이 반복한 총 횟수를 등록해 보세요. 다른 반, 다른 학생의 기록이 실시간으로 함께 올라옵니다.";
+  sub.textContent = fortime
+    ? "오늘 세션을 완료한 시간을 등록해 보세요. 다른 반, 다른 학생의 기록이 실시간으로 함께 올라옵니다."
+    : "제한 시간 동안 완료한 총 라운드(또는 횟수)를 등록해 보세요. 다른 반, 다른 학생의 기록이 실시간으로 함께 올라옵니다.";
   box.appendChild(eyebrow); box.appendChild(h1); box.appendChild(sub);
 
   const rtBadge = document.createElement("div");
@@ -1876,7 +1676,7 @@ function renderRecordTab(){
   if(!GOOGLE_SHEET_WEBAPP_URL){
     const gsNote = document.createElement("div");
     gsNote.className="sub"; gsNote.style.marginTop="-10px";
-    gsNote.textContent = "ℹ️ 구글 시트 연동 URL이 아직 설정되지 않았어요. 설정하면 기록이 구글 시트에도 자동 저장됩니다.";
+    gsNote.textContent = "ℹ️ 구글 시트 연동 URL이 아직 설정되지 않았어요.";
     box.appendChild(gsNote);
   }
 
@@ -1902,16 +1702,23 @@ function renderRecordTab(){
   nameField.innerHTML = `<label>이름</label><input id="recNameInput" type="text" placeholder="이름 입력" value="${state.recordName}"/>`;
   form.appendChild(nameField);
 
-  const timeField = document.createElement("div"); timeField.className="field";
-  timeField.innerHTML = `<label>제한시간 내 총 수행 횟수 (AMRAP · 6종목 합산 반복 수)</label>`;
-  const timeRow = document.createElement("div");
-  timeRow.style.display="flex"; timeRow.style.gap="10px"; timeRow.style.alignItems="center";
-  timeRow.innerHTML = `
-    <input id="recRepsInput" type="number" min="0" placeholder="예: 84" value="${state.recordReps}" style="flex:1;background:var(--bg-panel-2);border:1px solid var(--line);border-radius:8px;padding:11px 12px;color:var(--text);font-size:14px;"/>
-    <span style="color:var(--muted2);font-weight:700;">회</span>
-  `;
-  timeField.appendChild(timeRow);
-  form.appendChild(timeField);
+  const valueField = document.createElement("div"); valueField.className="field";
+  if(fortime){
+    valueField.innerHTML = `<label>완료 시간</label>`;
+    const timeRow = document.createElement("div");
+    timeRow.style.display="flex"; timeRow.style.gap="10px"; timeRow.style.alignItems="center";
+    timeRow.innerHTML = `
+      <input id="recMinInput" type="number" min="0" placeholder="분" value="${state.recordMin}" style="flex:1;background:var(--bg-panel-2);border:1px solid var(--line);border-radius:8px;padding:11px 12px;color:var(--text);font-size:14px;"/>
+      <span style="color:var(--muted2);font-weight:700;">분</span>
+      <input id="recSecInput" type="number" min="0" max="59" placeholder="초" value="${state.recordSec}" style="flex:1;background:var(--bg-panel-2);border:1px solid var(--line);border-radius:8px;padding:11px 12px;color:var(--text);font-size:14px;"/>
+      <span style="color:var(--muted2);font-weight:700;">초</span>
+    `;
+    valueField.appendChild(timeRow);
+  } else {
+    valueField.innerHTML = `<label>총 라운드 (또는 총 횟수)</label>
+      <input id="recValueInput" type="number" min="0" placeholder="예: 6" value="${state.recordValue}" style="width:100%;background:var(--bg-panel-2);border:1px solid var(--line);border-radius:8px;padding:11px 12px;color:var(--text);font-size:14px;"/>`;
+  }
+  form.appendChild(valueField);
 
   const submitBtn = document.createElement("button");
   submitBtn.className="btn btn-primary"; submitBtn.textContent="🔥 기록 등록하기";
@@ -1923,18 +1730,22 @@ function renderRecordTab(){
     const ban=document.getElementById("recBanInput");
     const beon=document.getElementById("recBeonInput");
     const n=document.getElementById("recNameInput");
-    const r=document.getElementById("recRepsInput");
+    const m=document.getElementById("recMinInput");
+    const s=document.getElementById("recSecInput");
+    const v=document.getElementById("recValueInput");
     if(ban) ban.onchange = e=>state.recordBan=e.target.value;
     if(beon) beon.onchange = e=>state.recordBeon=e.target.value;
     if(n) n.oninput = e=>state.recordName=e.target.value;
-    if(r) r.oninput = e=>state.recordReps=e.target.value;
+    if(m) m.oninput = e=>state.recordMin=e.target.value;
+    if(s) s.oninput = e=>state.recordSec=e.target.value;
+    if(v) v.oninput = e=>state.recordValue=e.target.value;
   },0);
 
   const boardEyebrow=document.createElement("div"); boardEyebrow.className="eyebrow";
-  boardEyebrow.textContent = "1차시 서킷 AMRAP 기록 · 실시간 순위 (많을수록 상위)";
+  boardEyebrow.textContent = `${state.sessionKey} 기록 · 실시간 순위 (${fortime ? "빠를수록 상위" : "많을수록 상위"})`;
   box.appendChild(boardEyebrow);
 
-  if(state.leaderboardCache === null){
+  if(state.leaderboardCache === null || state.leaderboardSessionKey !== state.sessionKey){
     fetchLeaderboard();
     const loading=document.createElement("div"); loading.className="empty"; loading.textContent="기록을 불러오는 중...";
     box.appendChild(loading);
@@ -1955,7 +1766,7 @@ function renderRecordTab(){
     row.innerHTML = `
       <div class="lb-rank">${i+1}</div>
       <div class="lb-name">${r.student_name}<span class="lb-class">${r.class_group || ""}</span></div>
-      <div class="lb-value">${r.record_value}회</div>
+      <div class="lb-value">${formatRecordValue(r.record_value, r.record_unit)}</div>
     `;
     board.appendChild(row);
   });
@@ -1963,6 +1774,7 @@ function renderRecordTab(){
 
   return box;
 }
+
 
 /* =========================================================
    시작
