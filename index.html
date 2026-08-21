@@ -1236,26 +1236,29 @@ function renderManualOverlay(){
    동료평가지 탭
 ========================================================= */
 // 동료평가 제출 1건을 구글시트 행으로 변환
-// 컬럼: 날짜, 차시, 평가자반, 평가자번호, 평가자이름, 평가대상자반, 평가대상자번호, 평가대상자이름, WOD, WOD완수(2점), 태도항목(예1/아니오0, 5개), 태도충족수, 제출시각
+// 컬럼: 제출시각, 평가대상자 학번, 평가대상자 이름, 차시, 실천점수, 함께점수, 총점, 평가자 이름
+// 실천점수: 1번 문항(WOD 완수) 예=2점, 아니오/미응답=0점
+// 함께점수: 2~6번 문항(5개) 전부 예일 때만 1점, 하나라도 아니오/미응답이면 0점
 function buildEvalSheetRows(payload){
-  const practiceItem = AFFECTIVE_CHECKLIST[0];
   const practiceAns = payload.answers[0];
-  const practiceScore = practiceAns===1 ? practiceItem.points : (practiceAns===0 ? 0 : "");
+  const practiceScore = practiceAns===1 ? AFFECTIVE_CHECKLIST[0].points : 0;
 
   const attitudeVals = [];
-  AFFECTIVE_CHECKLIST.forEach((item,qi)=>{
-    if(qi===0) return; // 실천항목 제외
-    const v = payload.answers[qi];
-    if(typeof v==="number") attitudeVals.push(v);
-  });
-  if(practiceScore==="" && attitudeVals.length===0) return [];
+  for(let qi=1; qi<AFFECTIVE_CHECKLIST.length; qi++){
+    attitudeVals.push(payload.answers[qi]);
+  }
+  const attitudeAllAnswered = attitudeVals.every(v=> typeof v==="number");
+  const togetherScore = (attitudeAllAnswered && attitudeVals.every(v=>v===1)) ? 1 : 0;
 
-  const yesCount = attitudeVals.filter(v=>v===1).length;
+  const hasAnyAnswer = typeof practiceAns==="number" || attitudeVals.some(v=>typeof v==="number");
+  if(!hasAnyAnswer) return [];
+
+  const total = practiceScore + togetherScore;
+  const studentId = `1학년 ${payload.performerBan}반 ${payload.performerBeon}번`;
   const tsIso = new Date(payload.ts).toISOString();
   return [[
-    payload.date, payload.cha, payload.observerBan, payload.observerBeon,
-    payload.observerName, payload.performerBan, payload.performerBeon, payload.performer, payload.wodTitle,
-    practiceScore, attitudeVals.join(","), attitudeVals.length ? `${yesCount}/${attitudeVals.length}` : "", tsIso
+    tsIso, studentId, payload.performer, payload.cha,
+    practiceScore, togetherScore, total, payload.observerName
   ]];
 }
 
