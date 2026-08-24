@@ -492,6 +492,21 @@ const ROSTER = {
 };
 function lookupName(ban, beon){ return (ROSTER[ban] && ROSTER[ban][beon]) || ""; }
 
+function getSetCount(id){
+  const note = (state.wod.notes && state.wod.notes[id]) || "";
+  const m = note.match(/(\d+)\s*세트/);
+  return m ? parseInt(m[1],10) : 1;
+}
+function getProgressArray(id){
+  const count = getSetCount(id);
+  let arr = state.progress[id];
+  if(!Array.isArray(arr) || arr.length !== count){
+    arr = new Array(count).fill(false);
+    state.progress[id] = arr;
+  }
+  return arr;
+}
+
 
 
 /* =========================================================
@@ -547,7 +562,13 @@ let state = {
   recordSec: "",     // FORTIME: 초
   leaderboardCache: null,
   leaderboardSessionKey: null,
-  rtSubscribed: false
+  rtSubscribed: false,
+
+  // 학급별 기록 대결
+  classLeaderboardCache: null,
+  classLeaderboardSessionKey: null,
+  classRawRows: null,
+  classRtSubscribed: false
 };
 
 function buildWodFromSession(key){
@@ -743,7 +764,10 @@ function renderWodTab(){
   const box = document.createElement("div");
   const ids = state.wod.ids;
   const s = state.wod;
-  const doneCount = ids.filter(id=>state.progress[id]).length;
+  const doneCount = ids.filter(id=>{
+    const arr = getProgressArray(id);
+    return arr.length>0 && arr.every(Boolean);
+  }).length;
 
   const hero = document.createElement("div");
   hero.className="hero";
@@ -820,7 +844,9 @@ function renderWodTab(){
 function renderExCard(id, i){
   const ex = LIB[id];
   const note = (state.wod.notes && state.wod.notes[id]) || "";
-  const done = !!state.progress[id];
+  const setCount = getSetCount(id);
+  const arr = getProgressArray(id);
+  const done = arr.length>0 && arr.every(Boolean);
   const card = document.createElement("div");
   card.className = "ex-card" + (done?" done":"");
 
@@ -831,16 +857,32 @@ function renderExCard(id, i){
     <div class="ex-name">${ex.name}</div>
     <div class="ex-target">${note}</div>
   `;
-  const checkBtn = document.createElement("button");
-  checkBtn.className="check-btn";
-  checkBtn.innerHTML = done ? "✓" : "";
-  checkBtn.onclick = async ()=>{
-    state.progress[id] = !state.progress[id];
-    await storeSet("progress:" + todayStr(), state.progress, false);
-    render();
-  };
-  top.appendChild(checkBtn);
   card.appendChild(top);
+
+  const setsRow = document.createElement("div");
+  setsRow.className="sets-row";
+  if(setCount > 1){
+    const setsLabel = document.createElement("div");
+    setsLabel.className="sets-label";
+    setsLabel.textContent = "세트수: " + setCount;
+    setsRow.appendChild(setsLabel);
+  }
+  const setsBoxes = document.createElement("div");
+  setsBoxes.className="sets-boxes";
+  for(let s=0; s<setCount; s++){
+    const box = document.createElement("button");
+    box.className = "set-box" + (arr[s] ? " on" : "");
+    box.textContent = setCount > 1 ? (s+1) : "완료";
+    box.title = setCount > 1 ? (s+1) + "세트 완료 체크" : "완료 체크";
+    box.onclick = async ()=>{
+      arr[s] = !arr[s];
+      await storeSet("progress:" + todayStr(), state.progress, false);
+      render();
+    };
+    setsBoxes.appendChild(box);
+  }
+  setsRow.appendChild(setsBoxes);
+  card.appendChild(setsRow);
 
   const body = document.createElement("div");
   body.className="ex-body";
@@ -1219,7 +1261,7 @@ function renderManualOverlay(){
   const next=document.createElement("button");
   next.className="btn btn-primary"; next.textContent=nextLabel;
   next.onclick = async ()=>{
-    state.progress[id]=true;
+    getProgressArray(id).fill(true);
     await storeSet("progress:" + todayStr(), state.progress, false);
     if(state.followIdx < ids.length-1){ state.followIdx++; render(); }
     else { closeFollow(); showToast("영상 확인 완료! 수고했어요 💪"); }
@@ -1621,6 +1663,8 @@ function renderTeacherTab(){
       state.sessionKey = key;
       state.wod = wod;
       state.leaderboardCache = null;
+      state.classLeaderboardCache = null;
+      state.classRawRows = null;
       state.progress = {};
       showToast(key+"가 오늘의 WOD로 저장됐어요");
       state.tab="wod"; render();
@@ -1747,7 +1791,123 @@ async function submitRecord(){
   render();
 }
 
+/* ---------- 학급별 기록 대결 (개인 기록을 반별로 자동 합산) ---------- */
+function aggregateClassTotals(rows){
+  const byClass = {}; // class_group -> {sum, count}
+  rows.forEach(r=>{
+    // class_group 예: "1학년 6반 5번" -> "1학년 6반"만 추출
+    const m = String(r.class_group||"").match(/^(.*\d+반)/);
+    const key = m ? m[1] : (r.class_group || "미상");
+    if(!byClass[key]) byClass[key] = { class_group:key, sum:0, count:0 };
+    byClass[key].sum += Number(r.record_value)||0;
+    byClass[key].count += 1;
+  });
+  const list = Object.values(byClass);
+  if(isFortimeSession()) list.sort((a,b)=> a.sum - b.sum);
+  else list.sort((a,b)=> b.sum - a.sum);
+  return list;
+}
+
+async function fetchClassLeaderboard(){
+  if(!sb || !state.wod) return;
+  try{
+    const { data, error } = await sb
+      .from("wod_leaderboard")
+      .select("class_group, record_value, record_unit")
+      .eq("exercise_id", recordExerciseId())
+      .limit(1000);
+    if(error){ console.error(error); return; }
+    state.classRawRows = data || [];
+    state.classLeaderboardCache = aggregateClassTotals(state.classRawRows);
+    state.classLeaderboardSessionKey = state.sessionKey;
+    if(state.tab === "record") render();
+  }catch(e){ console.error(e); }
+}
+
+function subscribeClassRealtimeOnce(){
+  if(state.classRtSubscribed || !sb) return;
+  state.classRtSubscribed = true;
+  sb.channel("wod-class-leaderboard-changes")
+    .on("postgres_changes", { event:"INSERT", schema:"public", table:"wod_leaderboard" }, (payload)=>{
+      const row = payload.new;
+      if(row.exercise_id !== recordExerciseId()) return;
+      if(!state.classRawRows) state.classRawRows = [];
+      state.classRawRows.push(row);
+      state.classLeaderboardCache = aggregateClassTotals(state.classRawRows);
+    })
+    .subscribe();
+}
+
+function renderIndividualBoard(){
+  const fortime = isFortimeSession();
+  const wrap = document.createElement("div");
+
+  if(state.leaderboardCache === null || state.leaderboardSessionKey !== state.sessionKey){
+    fetchLeaderboard();
+    const loading=document.createElement("div"); loading.className="empty"; loading.textContent="기록을 불러오는 중...";
+    wrap.appendChild(loading);
+    return wrap;
+  }
+
+  const list = state.leaderboardCache;
+  if(list.length === 0){
+    const empty=document.createElement("div"); empty.className="empty"; empty.textContent="아직 등록된 기록이 없어요. 첫 기록의 주인공이 되어 보세요!";
+    wrap.appendChild(empty);
+    return wrap;
+  }
+
+  const board = document.createElement("div"); board.className="lb-board";
+  list.forEach((r,i)=>{
+    const row = document.createElement("div");
+    row.className = "lb-row" + (i===0?" top1":i===1?" top2":i===2?" top3":"");
+    row.innerHTML = `
+      <div class="lb-rank">${i+1}</div>
+      <div class="lb-name">${r.student_name}<span class="lb-class">${r.class_group || ""}</span></div>
+      <div class="lb-value">${formatRecordValue(r.record_value, r.record_unit)}</div>
+    `;
+    board.appendChild(row);
+  });
+  wrap.appendChild(board);
+  return wrap;
+}
+
+function renderClassBoard(){
+  const fortime = isFortimeSession();
+  const wrap = document.createElement("div");
+
+  if(state.classLeaderboardCache === null || state.classLeaderboardSessionKey !== state.sessionKey){
+    fetchClassLeaderboard();
+    const loading=document.createElement("div"); loading.className="empty"; loading.textContent="학급 기록을 불러오는 중...";
+    wrap.appendChild(loading);
+    return wrap;
+  }
+
+  const list = state.classLeaderboardCache;
+  if(list.length === 0){
+    const empty=document.createElement("div"); empty.className="empty"; empty.textContent="아직 등록된 개인 기록이 없어요. 학생들이 기록을 등록하면 반별로 자동 합산되어 표시됩니다.";
+    wrap.appendChild(empty);
+    return wrap;
+  }
+
+  const unit = fortime ? "초" : "회";
+  const board = document.createElement("div"); board.className="lb-board";
+  list.forEach((r,i)=>{
+    const row = document.createElement("div");
+    row.className = "lb-row" + (i===0?" top1":i===1?" top2":i===2?" top3":"");
+    row.innerHTML = `
+      <div class="lb-rank">${i+1}</div>
+      <div class="lb-name">${r.class_group}<span class="lb-class">참여 ${r.count}명</span></div>
+      <div class="lb-value">${formatRecordValue(r.sum, unit)}</div>
+    `;
+    board.appendChild(row);
+  });
+  wrap.appendChild(board);
+  return wrap;
+}
+
 function renderRecordTab(){
+  subscribeRealtimeOnce();
+  subscribeClassRealtimeOnce();
   const box = document.createElement("div");
   const fortime = isFortimeSession();
 
@@ -1831,35 +1991,22 @@ function renderRecordTab(){
   },0);
 
   const boardEyebrow=document.createElement("div"); boardEyebrow.className="eyebrow";
-  boardEyebrow.textContent = `${state.sessionKey} 기록 · 실시간 순위 (${fortime ? "빠를수록 상위" : "많을수록 상위"})`;
+  boardEyebrow.textContent = `${state.sessionKey} 개인 기록 · 실시간 순위 (${fortime ? "빠를수록 상위" : "많을수록 상위"})`;
   box.appendChild(boardEyebrow);
+  box.appendChild(renderIndividualBoard());
 
-  if(state.leaderboardCache === null || state.leaderboardSessionKey !== state.sessionKey){
-    fetchLeaderboard();
-    const loading=document.createElement("div"); loading.className="empty"; loading.textContent="기록을 불러오는 중...";
-    box.appendChild(loading);
-    return box;
-  }
+  /* ---------- 학급별 기록 대결 (자동 합산) ---------- */
+  const classEyebrow=document.createElement("div"); classEyebrow.className="eyebrow"; classEyebrow.style.marginTop="30px";
+  classEyebrow.textContent = "🏫 학급별 기록 대결";
+  box.appendChild(classEyebrow);
+  const classSub=document.createElement("div"); classSub.className="sub";
+  classSub.textContent = "따로 입력할 필요 없어요. 위에서 학생들이 등록한 개인 기록이 반별로 자동 합산되어 실시간으로 순위가 매겨집니다.";
+  box.appendChild(classSub);
 
-  const list = state.leaderboardCache;
-  if(list.length === 0){
-    const empty=document.createElement("div"); empty.className="empty"; empty.textContent="아직 등록된 기록이 없어요. 첫 기록의 주인공이 되어 보세요!";
-    box.appendChild(empty);
-    return box;
-  }
-
-  const board = document.createElement("div"); board.className="lb-board";
-  list.forEach((r,i)=>{
-    const row = document.createElement("div");
-    row.className = "lb-row" + (i===0?" top1":i===1?" top2":i===2?" top3":"");
-    row.innerHTML = `
-      <div class="lb-rank">${i+1}</div>
-      <div class="lb-name">${r.student_name}<span class="lb-class">${r.class_group || ""}</span></div>
-      <div class="lb-value">${formatRecordValue(r.record_value, r.record_unit)}</div>
-    `;
-    board.appendChild(row);
-  });
-  box.appendChild(board);
+  const classBoardEyebrow=document.createElement("div"); classBoardEyebrow.className="eyebrow";
+  classBoardEyebrow.textContent = `${state.sessionKey} 학급 합산 순위 (${fortime ? "합산 시간이 짧을수록 상위" : "합산 횟수가 많을수록 상위"})`;
+  box.appendChild(classBoardEyebrow);
+  box.appendChild(renderClassBoard());
 
   return box;
 }
