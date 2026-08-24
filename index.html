@@ -1236,7 +1236,7 @@ function renderManualOverlay(){
    동료평가지 탭
 ========================================================= */
 // 동료평가 제출 1건을 구글시트 행으로 변환
-// 컬럼: 제출날짜, 차시, 학생(대상자) 학번, 학생(대상자) 이름, 평가자 학번, 평가자 이름, 실천점수, 함께점수, 총점
+// 컬럼: 제출날짜, 차시, 학생(대상자) 학년반, 학생(대상자) 번호, 학생(대상자) 이름, 평가자 학년반, 평가자 번호, 평가자 이름, 실천점수, 함께점수, 총점
 // 실천점수: 1번 문항(WOD 완수) 예=2점, 아니오/미응답=0점
 // 함께점수: 2~6번 문항(5개) 전부 예일 때만 1점, 하나라도 아니오/미응답이면 0점
 function buildEvalSheetRows(payload){
@@ -1254,11 +1254,14 @@ function buildEvalSheetRows(payload){
   if(!hasAnyAnswer) return [];
 
   const total = practiceScore + togetherScore;
-  const studentId = `1학년 ${payload.performerBan}반 ${payload.performerBeon}번`;
-  const observerId = `1학년 ${payload.observerBan}반 ${payload.observerBeon}번`;
+  const studentClass = `1학년 ${payload.performerBan}반`;
+  const studentBeon = `${payload.performerBeon}번`;
+  const observerClass = `1학년 ${payload.observerBan}반`;
+  const observerBeon = `${payload.observerBeon}번`;
   const dateOnly = payload.date; // YYYY-MM-DD (todayStr() 결과, 이미 날짜만 담고 있음)
   return [[
-    dateOnly, payload.cha, studentId, payload.performer, observerId, payload.observerName,
+    dateOnly, payload.cha, studentClass, studentBeon, payload.performer,
+    observerClass, observerBeon, payload.observerName,
     practiceScore, togetherScore, total
   ]];
 }
