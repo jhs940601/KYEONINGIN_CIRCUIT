@@ -373,6 +373,7 @@ try{
    기능은 자동으로 건너뜁니다.
 ========================================================= */
 const GOOGLE_SHEET_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwPFt78P_RQvLy6w3b5Nanlalpp5FxbxNdK0fFLYzMY9wL-uK2_2JiFM6kaml0gRNgNcg/exec";
+const APP_URL = "https://kyeoningin-circuit-jsb5.vercel.app/";
 
 function postToSheet(type, rows){
   if(!GOOGLE_SHEET_WEBAPP_URL) return;
@@ -954,24 +955,33 @@ function emomTick(){
   e.remaining -= 1;
   if(e.remaining <= 0){
     beep(880,0.15);
-    e.exIdx += 1;
-    if(e.exIdx >= state.wod.ids.length){
-      e.exIdx = 0; e.round += 1;
-    }
-    if(e.round > e.totalRounds){
-      clearAllTimers();
-      state.emom = null; state.followMode=false; state.followKind=null;
-      stopWorkoutMusic();
-      showToast("EMOM 완료! 수고했어요 💪");
-      return;
-    }
-    e.remaining = 60;
-    render();
+    advanceEmom();
   } else {
     if(e.remaining<=3) beep(660,0.08);
     const numEl = document.getElementById("timerNum");
     if(numEl) numEl.textContent = e.remaining;
   }
+}
+function advanceEmom(){
+  const e = state.emom; if(!e) return;
+  e.exIdx += 1;
+  if(e.exIdx >= state.wod.ids.length){
+    e.exIdx = 0; e.round += 1;
+  }
+  if(e.round > e.totalRounds){
+    clearAllTimers();
+    state.emom = null; state.followMode=false; state.followKind=null;
+    stopWorkoutMusic();
+    showToast("EMOM 완료! 수고했어요 💪");
+    return;
+  }
+  e.remaining = 60;
+  render();
+}
+function skipEmom(){
+  const e = state.emom; if(!e) return;
+  beep(880,0.15);
+  advanceEmom();
 }
 function renderEmomOverlay(){
   const e = state.emom;
@@ -1023,6 +1033,10 @@ function renderEmomOverlay(){
   pauseBtn.textContent = e.running ? "일시정지" : "재개";
   pauseBtn.onclick = ()=>{ e.running=!e.running; if(e.running) startWorkoutMusic(); else stopWorkoutMusic(); render(); };
   controls.appendChild(pauseBtn);
+  const skipBtn = document.createElement("button"); skipBtn.className="btn btn-ghost";
+  skipBtn.textContent = "다음 동작으로 건너뛰기 ▶";
+  skipBtn.onclick = skipEmom;
+  controls.appendChild(skipBtn);
   body.appendChild(controls);
 
   ov.appendChild(body);
@@ -1646,6 +1660,20 @@ function renderTeacherTab(){
   const sub=document.createElement("div"); sub.className="sub";
   sub.textContent="차시를 선택하면 모든 학생 화면의 '오늘의 WOD'가 바로 업데이트됩니다.";
   box.appendChild(eyebrow); box.appendChild(h1); box.appendChild(sub);
+
+  const qrEyebrow=document.createElement("div"); qrEyebrow.className="eyebrow"; qrEyebrow.textContent="학생 접속 QR코드";
+  box.appendChild(qrEyebrow);
+  const qrCard=document.createElement("div");
+  qrCard.className="hero";
+  qrCard.style.textAlign="center";
+  qrCard.innerHTML = `
+    <div class="sub" style="margin-bottom:14px;">학생들이 휴대폰 카메라로 아래 QR코드를 스캔하면 바로 이 웹앱으로 접속됩니다.</div>
+    <img src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(APP_URL)}"
+         alt="앱 접속 QR코드" width="220" height="220"
+         style="background:#fff;border-radius:14px;padding:10px;display:inline-block;"/>
+    <div class="sub" style="margin-top:12px;word-break:break-all;">${APP_URL}</div>
+  `;
+  box.appendChild(qrCard);
 
   box.appendChild(renderEvalRoster());
 
