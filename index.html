@@ -473,6 +473,11 @@ const SESSIONS = {
     mode:"FORTIME", label:"포타임 · 각자 4세트씩 나눠서 진행",
     ids:["situp","mountainclimber","highpitch","wallsit"],
     notes:{ situp:"160회(20개씩 8세트, 각자 4세트)", mountainclimber:"싯업이 끝날 때까지 계속 진행", highpitch:"240회(30개씩 8세트, 각자 4세트)", wallsit:"하이피치가 끝날 때까지 계속 진행" }
+  },
+  "9차시": {
+    mode:"AMRAP", capMinutes:10, label:"AMRAP 10분 · 최대한 많은 라운드 반복",
+    ids:["squat","jumpingjack","mountainclimber","superman"],
+    notes:{ squat:"30회 · 3세트", jumpingjack:"40회 · 3세트", mountainclimber:"15회 · 3세트", superman:"20회 · 3세트" }
   }
 };
 const MODE_LABEL = {EMOM:"EMOM", AMRAP:"AMRAP", FORTIME:"포타임(For Time)"};
@@ -569,11 +574,18 @@ let state = {
   classLeaderboardCache: null,
   classLeaderboardSessionKey: null,
   classRawRows: null,
-  classRtSubscribed: false
+  classRtSubscribed: false,
+
+  // 교사 모드 - 직접 만든 차시
+  customSessions: {},   // {이름: {mode, capMinutes, partner, ids, notes, customEx, label}}
+  builder: null,        // 차시 만들기 폼 상태
+  deleteArm: null
 };
 
+function getSessionDef(key){ return SESSIONS[key] || state.customSessions[key]; }
+
 function buildWodFromSession(key){
-  const s = SESSIONS[key];
+  const s = getSessionDef(key);
   return {
     sessionKey: key,
     title: key,
@@ -582,8 +594,23 @@ function buildWodFromSession(key){
     capMinutes: s.capMinutes,
     partner: !!s.partner,
     ids: s.ids,
-    notes: s.notes
+    notes: s.notes,
+    customEx: s.customEx || {}
   };
+}
+
+// 기본 동작(LIB) 또는 교사가 직접 입력한 동작을 돌려줌
+function getEx(id){
+  if(LIB[id]) return LIB[id];
+  const ce = state.wod && state.wod.customEx && state.wod.customEx[id];
+  return ce || { name:String(id), cautions:[], videoId:null, query:String(id) };
+}
+
+function parseYoutubeId(s){
+  s = (s||"").trim(); if(!s) return null;
+  if(/^[A-Za-z0-9_-]{11}$/.test(s)) return s;
+  const m = s.match(/(?:youtu\.be\/|shorts\/|[?&]v=|embed\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
 }
 
 let sharedAudioCtx = null;
@@ -682,6 +709,7 @@ function toggleWorkoutMusic(){
 async function loadAll(){
   const wod = await storeGet("wod:" + todayStr(), true);
   const progress = await storeGet("progress:" + todayStr(), false);
+  state.customSessions = (await storeGet("customSessions", true)) || {};
   state.wod = wod || buildWodFromSession("1차시");
   state.sessionKey = state.wod.sessionKey || "1차시";
   state.progress = progress || {};
@@ -772,7 +800,7 @@ function renderWodTab(){
 
   const hero = document.createElement("div");
   hero.className="hero";
-  const modeChip = `<div class="meta-chip"><b>${MODE_LABEL[s.mode]}</b><span>${s.mode==="AMRAP" ? s.capMinutes+"분 제한" : s.mode==="EMOM" ? "16분" : "시간 측정"}</span></div>`;
+  const modeChip = `<div class="meta-chip"><b>${MODE_LABEL[s.mode]}</b><span>${s.mode==="AMRAP" ? s.capMinutes+"분 제한" : s.mode==="EMOM" ? (ids.length*4)+"분" : "시간 측정"}</span></div>`;
   const partnerChip = s.partner ? `<div class="meta-chip"><b>2인 1조</b><span>파트너 워크아웃</span></div>` : "";
   hero.innerHTML = `
     <div class="hero-row">
@@ -807,7 +835,7 @@ function renderWodTab(){
   const timerBtn = document.createElement("button");
   timerBtn.className="btn btn-primary";
   if(s.mode==="EMOM"){
-    timerBtn.textContent="⏱ EMOM 시작 (16분)";
+    timerBtn.textContent=`⏱ EMOM 시작 (${ids.length*4}분)`;
     timerBtn.onclick = ()=>{
       state.followMode=true; state.followKind="emom";
       initEmom(); startWorkoutMusic(); render();
@@ -843,7 +871,7 @@ function renderWodTab(){
 }
 
 function renderExCard(id, i){
-  const ex = LIB[id];
+  const ex = getEx(id);
   const note = (state.wod.notes && state.wod.notes[id]) || "";
   const setCount = getSetCount(id);
   const arr = getProgressArray(id);
@@ -987,7 +1015,7 @@ function renderEmomOverlay(){
   const e = state.emom;
   const ids = state.wod.ids;
   const id = ids[e.exIdx];
-  const ex = LIB[id];
+  const ex = getEx(id);
   const note = (state.wod.notes && state.wod.notes[id]) || "";
 
   const ov = document.createElement("div"); ov.className="follow-overlay";
@@ -1109,7 +1137,7 @@ function renderAmrapOverlay(){
   refList.className="cautions follow-cautions";
   refList.style.marginTop="18px";
   ids.forEach(id=>{
-    const ex = LIB[id];
+    const ex = getEx(id);
     const note = (state.wod.notes && state.wod.notes[id]) || "";
     const li = document.createElement("li");
     li.textContent = `${ex.name} - ${note}`;
@@ -1174,7 +1202,7 @@ function renderStopwatchOverlay(){
   const refList = document.createElement("ul");
   refList.className="cautions follow-cautions";
   ids.forEach(id=>{
-    const ex = LIB[id];
+    const ex = getEx(id);
     const note = (state.wod.notes && state.wod.notes[id]) || "";
     const li = document.createElement("li");
     li.textContent = `${ex.name} - ${note}`;
@@ -1220,7 +1248,7 @@ function renderStopwatchOverlay(){
 function renderManualOverlay(){
   const ids = state.wod.ids;
   const id = ids[state.followIdx];
-  const ex = LIB[id];
+  const ex = getEx(id);
   const note = (state.wod.notes && state.wod.notes[id]) || "";
   const ov = document.createElement("div");
   ov.className="follow-overlay";
@@ -1677,7 +1705,7 @@ function renderTeacherTab(){
 
   box.appendChild(renderEvalRoster());
 
-  const eyebrowT=document.createElement("div"); eyebrowT.className="eyebrow"; eyebrowT.textContent="차시 선택 (1~8차시)";
+  const eyebrowT=document.createElement("div"); eyebrowT.className="eyebrow"; eyebrowT.textContent="차시 선택 (기본 차시)";
   box.appendChild(eyebrowT);
   const gridT=document.createElement("div"); gridT.className="preset-grid";
   Object.keys(SESSIONS).forEach(key=>{
@@ -1685,23 +1713,257 @@ function renderTeacherTab(){
     const b=document.createElement("button"); b.className="preset-btn";
     b.innerHTML = `${key}<br/><span style="font-size:11px;color:var(--muted2);font-weight:500;">${MODE_LABEL[s.mode]}</span>`;
     if(state.sessionKey === key) b.style.borderColor = "var(--accent)";
-    b.onclick = async ()=>{
-      const wod = buildWodFromSession(key);
-      await storeSet("wod:"+todayStr(), wod, true);
-      state.sessionKey = key;
-      state.wod = wod;
-      state.leaderboardCache = null;
-      state.classLeaderboardCache = null;
-      state.classRawRows = null;
-      state.progress = {};
-      showToast(key+"가 오늘의 WOD로 저장됐어요");
-      state.tab="wod"; render();
-    };
+    b.onclick = ()=>selectSession(key);
     gridT.appendChild(b);
   });
   box.appendChild(gridT);
 
+  const customKeys = Object.keys(state.customSessions);
+  if(customKeys.length){
+    const ce=mk("div","eyebrow","내가 만든 차시"); ce.style.marginTop="24px";
+    box.appendChild(ce);
+    const cg=mk("div","preset-grid");
+    customKeys.forEach(key=>{
+      const s = state.customSessions[key];
+      const cell = mk("div");
+      const b = mk("button","preset-btn");
+      b.style.width="100%";
+      b.innerHTML = `${key}<br/><span style="font-size:11px;color:var(--muted2);font-weight:500;">${MODE_LABEL[s.mode]}</span>`;
+      if(state.sessionKey === key) b.style.borderColor = "var(--accent)";
+      b.onclick = ()=>selectSession(key);
+      cell.appendChild(b);
+      const row = mk("div"); row.style.cssText="display:flex;gap:6px;margin-top:6px;";
+      const edit = mk("button","btn btn-ghost btn-sm","수정"); edit.style.flex="1";
+      edit.onclick = ()=>{ loadBuilderFrom(key); render(); setTimeout(()=>{ const el=document.getElementById("sessionBuilder"); if(el) el.scrollIntoView({behavior:"smooth"}); },50); };
+      const del = mk("button","btn btn-ghost btn-sm", state.deleteArm===key ? "한 번 더 눌러 삭제" : "삭제"); del.style.flex="1";
+      if(state.deleteArm===key) del.style.borderColor="var(--bad)";
+      del.onclick = async ()=>{
+        if(state.deleteArm!==key){ state.deleteArm=key; render(); return; }
+        delete state.customSessions[key];
+        await storeSet("customSessions", state.customSessions, true);
+        state.deleteArm=null; render();
+      };
+      row.appendChild(edit); row.appendChild(del);
+      cell.appendChild(row);
+      cg.appendChild(cell);
+    });
+    box.appendChild(cg);
+  }
+
+  box.appendChild(renderSessionBuilder());
+
   return box;
+}
+
+async function selectSession(key){
+  const wod = buildWodFromSession(key);
+  await storeSet("wod:"+todayStr(), wod, true);
+  state.sessionKey = key;
+  state.wod = wod;
+  state.leaderboardCache = null;
+  state.classLeaderboardCache = null;
+  state.classRawRows = null;
+  state.progress = {};
+  showToast(key+"가 오늘의 WOD로 저장됐어요");
+  state.tab="wod"; render();
+}
+
+/* ---------- 차시 직접 만들기 ---------- */
+function mk(tag, cls, text){
+  const e = document.createElement(tag);
+  if(cls) e.className = cls;
+  if(text!==undefined) e.textContent = text;
+  return e;
+}
+const BUILDER_INPUT_STYLE = "width:100%;background:var(--bg-panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--text);font-size:14px;font-family:'Inter',sans-serif;";
+const BUILDER_MAX_ROWS = 8;
+
+function newBuilderRow(){ return { id:"", customName:"", video:"", note:"" }; }
+function resetBuilder(){
+  state.builder = { name:"", mode:"EMOM", capMinutes:"10", partner:false,
+    rows:[newBuilderRow(),newBuilderRow(),newBuilderRow(),newBuilderRow()] };
+}
+function builderLabel(mode, cap, n, partner){
+  let t;
+  if(mode==="EMOM") t = `EMOM · 1분씩 ${n}개 동작 × 4라운드 (총 ${n*4}분)`;
+  else if(mode==="AMRAP") t = `AMRAP ${cap}분 · 최대한 많은 라운드 반복`;
+  else t = "포타임 · 전체를 마친 시간을 기록";
+  return partner ? t + " · 2인 1조" : t;
+}
+function loadBuilderFrom(key){
+  const s = getSessionDef(key); if(!s) return;
+  const isCustom = !SESSIONS[key];
+  state.builder = {
+    name: isCustom ? key : "",
+    mode: s.mode, capMinutes: String(s.capMinutes||10), partner: !!s.partner,
+    rows: s.ids.map(id=>{
+      const note = (s.notes && s.notes[id]) || "";
+      if(LIB[id]) return { id, customName:"", video:"", note };
+      const ce = (s.customEx && s.customEx[id]) || {};
+      return { id:"__custom", customName: ce.name||"", video: ce.videoId ? ("https://youtu.be/"+ce.videoId) : "", note };
+    })
+  };
+}
+
+async function saveBuilderSession(){
+  const b = state.builder;
+  const name = (b.name||"").trim();
+  if(!name){ showToast("차시 이름을 입력해 주세요 (예: 10차시)"); return; }
+  if(SESSIONS[name]){ showToast("기본 차시와 같은 이름이에요. 다른 이름을 써 주세요"); return; }
+  if(b.rows.length===0){ showToast("동작을 1개 이상 추가해 주세요"); return; }
+
+  const ids=[], notes={}, customEx={}, used=new Set();
+  for(let i=0;i<b.rows.length;i++){
+    const r = b.rows[i];
+    let id;
+    if(r.id==="__custom"){
+      const nm = (r.customName||"").trim();
+      if(!nm){ showToast(`${i+1}번 동작 이름을 입력해 주세요`); return; }
+      id = "custom_"+(i+1);
+      customEx[id] = { name:nm, cautions:[], videoId:parseYoutubeId(r.video), query:nm+" 운동 자세" };
+    } else if(r.id && LIB[r.id]){
+      id = r.id;
+    } else { showToast(`${i+1}번 동작을 선택해 주세요`); return; }
+    if(used.has(id)){ showToast("같은 동작이 두 번 들어갔어요"); return; }
+    used.add(id); ids.push(id); notes[id] = (r.note||"").trim();
+  }
+
+  let cap;
+  if(b.mode==="AMRAP"){
+    cap = Number(b.capMinutes);
+    if(!cap || cap<=0){ showToast("AMRAP 제한 시간(분)을 입력해 주세요"); return; }
+  }
+  state.customSessions[name] = { mode:b.mode, capMinutes:cap, partner:b.partner, ids, notes, customEx,
+    label: builderLabel(b.mode, cap, ids.length, b.partner) };
+  await storeSet("customSessions", state.customSessions, true);
+  resetBuilder();
+  await selectSession(name);
+}
+
+function renderSessionBuilder(){
+  if(!state.builder) resetBuilder();
+  const b = state.builder;
+  const wrap = mk("div"); wrap.id = "sessionBuilder";
+
+  const ey = mk("div","eyebrow","✏️ 차시 직접 만들기"); ey.style.marginTop="30px";
+  wrap.appendChild(ey);
+  wrap.appendChild(mk("div","sub","방식·동작·횟수/세트를 직접 정해서 새 차시를 만들 수 있어요. 저장하면 '내가 만든 차시'에 남고 오늘의 WOD로 바로 지정됩니다."));
+
+  const form = mk("div","record-form");
+
+  // 기존 차시에서 불러오기
+  const loadField = mk("div","field");
+  loadField.appendChild(mk("label",null,"기존 차시에서 불러와 수정 (선택)"));
+  const loadSel = document.createElement("select");
+  loadSel.appendChild(new Option("불러올 차시 선택", ""));
+  Object.keys(SESSIONS).concat(Object.keys(state.customSessions)).forEach(k=> loadSel.appendChild(new Option(k, k)));
+  loadSel.onchange = ()=>{ if(loadSel.value){ loadBuilderFrom(loadSel.value); render(); } };
+  loadField.appendChild(loadSel);
+  form.appendChild(loadField);
+
+  // 이름
+  const nameField = mk("div","field");
+  nameField.appendChild(mk("label",null,"차시 이름"));
+  const nameIn = document.createElement("input"); nameIn.type="text"; nameIn.placeholder="예: 10차시";
+  nameIn.value = b.name; nameIn.oninput = e=>{ b.name = e.target.value; };
+  nameField.appendChild(nameIn);
+  form.appendChild(nameField);
+
+  // 방식
+  const modeField = mk("div","field");
+  modeField.appendChild(mk("label",null,"운동 방식"));
+  const modeSel = document.createElement("select");
+  ["EMOM","AMRAP","FORTIME"].forEach(m=>{ const o=new Option(MODE_LABEL[m], m); if(b.mode===m) o.selected=true; modeSel.appendChild(o); });
+  modeSel.onchange = e=>{ b.mode = e.target.value; render(); };
+  modeField.appendChild(modeSel);
+  const hint = mk("div","sub", b.mode==="EMOM" ? "동작마다 1분씩, 전체 4라운드를 돌아요. (총 시간 = 동작 수 × 4분)"
+                          : b.mode==="AMRAP" ? "제한 시간 동안 전체 동작을 최대한 많이 반복해요."
+                          : "전체를 마칠 때까지 걸린 시간을 재요. (스톱워치)");
+  hint.style.margin="6px 0 0";
+  modeField.appendChild(hint);
+  form.appendChild(modeField);
+
+  if(b.mode==="AMRAP"){
+    const capField = mk("div","field");
+    capField.appendChild(mk("label",null,"AMRAP 제한 시간 (분)"));
+    const capIn = document.createElement("input"); capIn.type="number"; capIn.min="1"; capIn.placeholder="예: 10";
+    capIn.value = b.capMinutes; capIn.oninput = e=>{ b.capMinutes = e.target.value; };
+    capField.appendChild(capIn);
+    form.appendChild(capField);
+  }
+
+  // 2인 1조
+  const partnerLabel = mk("label"); partnerLabel.style.cssText="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-bottom:16px;cursor:pointer;";
+  const partnerCb = document.createElement("input"); partnerCb.type="checkbox"; partnerCb.checked=b.partner;
+  partnerCb.onchange = e=>{ b.partner = e.target.checked; };
+  partnerLabel.appendChild(partnerCb);
+  partnerLabel.appendChild(document.createTextNode("2인 1조 (둘이 합쳐서 수행)"));
+  form.appendChild(partnerLabel);
+
+  // 동작 목록
+  form.appendChild(mk("label",null,"동작 구성")).style.cssText="display:block;font-size:12px;color:var(--muted2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;";
+  b.rows.forEach((r,i)=>{
+    const card = mk("div");
+    card.style.cssText="border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--bg-panel-2);";
+
+    const head = mk("div"); head.style.cssText="display:flex;gap:8px;align-items:center;margin-bottom:8px;";
+    const idx = mk("div",null,String(i+1).padStart(2,"0"));
+    idx.style.cssText="font-family:'Oswald',sans-serif;font-weight:700;color:var(--steel);width:26px;flex-shrink:0;";
+    head.appendChild(idx);
+
+    const sel = document.createElement("select"); sel.style.cssText = BUILDER_INPUT_STYLE;
+    sel.appendChild(new Option("동작 선택", ""));
+    Object.keys(LIB).forEach(id=>{ const o=new Option(LIB[id].name, id); if(r.id===id) o.selected=true; sel.appendChild(o); });
+    const oc = new Option("✏️ 직접 입력 (목록에 없는 동작)", "__custom"); if(r.id==="__custom") oc.selected=true; sel.appendChild(oc);
+    sel.onchange = e=>{ r.id = e.target.value; render(); };
+    head.appendChild(sel);
+
+    if(b.rows.length>1){
+      const rm = mk("button","btn btn-ghost btn-sm","✕"); rm.title="이 동작 삭제";
+      rm.onclick = ()=>{ b.rows.splice(i,1); render(); };
+      head.appendChild(rm);
+    }
+    card.appendChild(head);
+
+    if(r.id==="__custom"){
+      const nm = document.createElement("input"); nm.type="text"; nm.placeholder="동작 이름 (예: 벤치 딥스)";
+      nm.style.cssText = BUILDER_INPUT_STYLE + "margin-bottom:8px;"; nm.value = r.customName;
+      nm.oninput = e=>{ r.customName = e.target.value; };
+      card.appendChild(nm);
+      const vd = document.createElement("input"); vd.type="text"; vd.placeholder="유튜브 링크 (선택)";
+      vd.style.cssText = BUILDER_INPUT_STYLE + "margin-bottom:8px;"; vd.value = r.video;
+      vd.oninput = e=>{ r.video = e.target.value; };
+      card.appendChild(vd);
+    }
+
+    const note = document.createElement("input"); note.type="text"; note.placeholder="횟수/세트 (예: 20회 · 4세트)";
+    note.style.cssText = BUILDER_INPUT_STYLE; note.value = r.note;
+    note.oninput = e=>{ r.note = e.target.value; };
+    card.appendChild(note);
+
+    form.appendChild(card);
+  });
+
+  const tip = mk("div","sub","💡 '4세트'처럼 적으면 오늘의 WOD 화면에 세트별 체크칸이 자동으로 생겨요.");
+  tip.style.margin="0 0 12px";
+  form.appendChild(tip);
+
+  const btnRow = mk("div"); btnRow.style.cssText="display:flex;gap:10px;flex-wrap:wrap;";
+  if(b.rows.length < BUILDER_MAX_ROWS){
+    const add = mk("button","btn btn-ghost","+ 동작 추가");
+    add.onclick = ()=>{ b.rows.push(newBuilderRow()); render(); };
+    btnRow.appendChild(add);
+  }
+  const save = mk("button","btn btn-primary","💾 저장하고 오늘의 WOD로 지정");
+  save.onclick = saveBuilderSession;
+  btnRow.appendChild(save);
+  const reset = mk("button","btn btn-ghost","초기화");
+  reset.onclick = ()=>{ resetBuilder(); render(); };
+  btnRow.appendChild(reset);
+  form.appendChild(btnRow);
+
+  wrap.appendChild(form);
+  return wrap;
 }
 
 
