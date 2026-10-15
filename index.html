@@ -460,9 +460,9 @@ const SESSIONS = {
     notes:{ squat:"20회 (2인 1조, 같이)", mountainclimber:"50회 (왕복, 둘이 합쳐서)", stepbox_sidestep:"50회 (둘이 합쳐서)", plank:"1분 (둘이 합쳐서, 한 명이 스크린 보고 체크)" }
   },
   "6차시": {
-    mode:"FORTIME", label:"포타임 · 2인 1조, 합쳐서 수행", partner:true,
-    ids:["jjaem","stepup","kneechestjump","superman"],
-    notes:{ jjaem:"300회 (둘이 합쳐서, 안 하는 사람이 숫자 세어주기)", stepup:"200회 (왕복, 둘이 합쳐서, 숫자 세어주기)", kneechestjump:"200회 (둘이 합쳐서, 숫자 세어주기)", superman:"160회 (둘이 합쳐서, 숫자 세어주기)" }
+    mode:"FORTIME", label:"포타임 · 각자 4세트씩 나눠서 진행",
+    ids:["situp","mountainclimber","highpitch","wallsit"],
+    notes:{ situp:"160회(20개씩 8세트, 각자 4세트)", mountainclimber:"싯업이 끝날 때까지 계속 진행", highpitch:"240회(30개씩 8세트, 각자 4세트)", wallsit:"하이피치가 끝날 때까지 계속 진행" }
   },
   "7차시": {
     mode:"AMRAP", capMinutes:10, label:"AMRAP 10분 · 가방 메고 진행",
@@ -470,9 +470,9 @@ const SESSIONS = {
     notes:{ kneepushup_bag:"20회 (가방 메고 진행)", lateralburpee:"25회 (가방 메고 진행)", highpitch:"25회 (왕복)", twistcore:"30회 (왼·오)" }
   },
   "8차시": {
-    mode:"FORTIME", label:"포타임 · 각자 4세트씩 나눠서 진행",
-    ids:["situp","mountainclimber","highpitch","wallsit"],
-    notes:{ situp:"160회(20개씩 8세트, 각자 4세트)", mountainclimber:"싯업이 끝날 때까지 계속 진행", highpitch:"240회(30개씩 8세트, 각자 4세트)", wallsit:"하이피치가 끝날 때까지 계속 진행" }
+    mode:"FORTIME", label:"포타임 · 2인 1조, 합쳐서 수행", partner:true,
+    ids:["jjaem","stepup","kneechestjump","superman"],
+    notes:{ jjaem:"300회 (둘이 합쳐서, 안 하는 사람이 숫자 세어주기)", stepup:"200회 (왕복, 둘이 합쳐서, 숫자 세어주기)", kneechestjump:"200회 (둘이 합쳐서, 숫자 세어주기)", superman:"160회 (둘이 합쳐서, 숫자 세어주기)" }
   },
   "9차시": {
     mode:"AMRAP", capMinutes:10, label:"AMRAP 10분 · 최대한 많은 라운드 반복",
@@ -706,12 +706,38 @@ function toggleWorkoutMusic(){
   if(state.musicOn) startWorkoutMusic(); else stopWorkoutMusic();
 }
 
+async function loadCurrentSessionKey(){
+  let key = null;
+  if(sb){
+    try{
+      const { data } = await sb.from("app_settings").select("value").eq("key","current_session").maybeSingle();
+      if(data && data.value) key = data.value;
+    }catch(e){ console.error(e); }
+  }
+  if(!key){ try{ key = localStorage.getItem("currentSessionKey"); }catch(e){} }
+  return key;
+}
+async function saveCurrentSessionKey(key){
+  try{ localStorage.setItem("currentSessionKey", key); }catch(e){}
+  if(sb){
+    try{
+      const { error } = await sb.from("app_settings").upsert({ key:"current_session", value:key, updated_at:new Date().toISOString() });
+      if(error) console.error(error);
+    }catch(e){ console.error(e); }
+  }
+}
+
 async function loadAll(){
-  const wod = await storeGet("wod:" + todayStr(), true);
-  const progress = await storeGet("progress:" + todayStr(), false);
   state.customSessions = (await storeGet("customSessions", true)) || {};
-  state.wod = wod || buildWodFromSession("1차시");
-  state.sessionKey = state.wod.sessionKey || "1차시";
+  const progress = await storeGet("progress:" + todayStr(), false);
+  let key = await loadCurrentSessionKey();
+  if(!key){
+    const old = await storeGet("wod:" + todayStr(), true);
+    if(old && old.sessionKey) key = old.sessionKey;
+  }
+  if(!key || (!SESSIONS[key] && !state.customSessions[key])) key = "1차시";
+  state.wod = buildWodFromSession(key);
+  state.sessionKey = key;
   state.progress = progress || {};
   state.loading = false;
   render();
@@ -1750,14 +1776,83 @@ function renderTeacherTab(){
     box.appendChild(cg);
   }
 
+  box.appendChild(renderRecordManager());
   box.appendChild(renderSessionBuilder());
 
   return box;
 }
 
+/* ---------- 기록 삭제 (교사모드) ---------- */
+function allSessionKeys(){ return Object.keys(SESSIONS).concat(Object.keys(state.customSessions||{})); }
+async function loadManageRows(){
+  if(!sb) return;
+  const key = state.manageKey || state.sessionKey;
+  state.manageLoading = true; render();
+  try{
+    const { data, error } = await sb.from("wod_leaderboard").select("*")
+      .eq("exercise_id","session_"+key).order("created_at",{ascending:false}).limit(500);
+    if(error){ console.error(error); state.manageRows=[]; state.manageErr="불러오기 실패: "+error.message; }
+    else { state.manageRows = data||[]; state.manageErr=null; }
+  }catch(e){ state.manageRows=[]; state.manageErr="불러오기 실패"; }
+  state.manageLoading = false; render();
+}
+async function deleteRecord(id){
+  try{
+    const { data, error } = await sb.from("wod_leaderboard").delete().eq("id",id).select();
+    if(error || !data || !data.length){ showToast("삭제에 실패했어요"); return; }
+    state.manageRows = (state.manageRows||[]).filter(r=>r.id!==id);
+    state.manageArm = null;
+    state.leaderboardCache = null; state.classLeaderboardCache = null; state.classRawRows = null;
+    showToast("기록을 삭제했어요");
+  }catch(e){ console.error(e); showToast("삭제에 실패했어요"); }
+}
+function renderRecordManager(){
+  const wrap = mk("div"); wrap.style.marginTop="28px";
+  wrap.appendChild(mk("div","eyebrow","기록 삭제 (기록대결)"));
+  const card = mk("div","hero");
+  card.appendChild(mk("div","sub","잘못 입력된 학생 기록을 차시별로 찾아 삭제할 수 있어요. 삭제하면 개인·학급 순위에서도 바로 빠집니다."));
+  const row = mk("div"); row.style.cssText="display:flex;gap:8px;margin-top:12px;";
+  const sel = document.createElement("select");
+  sel.style.cssText = BUILDER_INPUT_STYLE+"flex:1;";
+  allSessionKeys().forEach(k=>{
+    const o=document.createElement("option"); o.value=k; o.textContent=k;
+    if((state.manageKey||state.sessionKey)===k) o.selected=true;
+    sel.appendChild(o);
+  });
+  sel.onchange = ()=>{ state.manageKey = sel.value; state.manageRows=null; state.manageArm=null; };
+  const load = mk("button","btn btn-primary btn-sm", "기록 불러오기");
+  load.onclick = ()=>{ state.manageKey = sel.value; state.manageArm=null; loadManageRows(); };
+  row.appendChild(sel); row.appendChild(load);
+  card.appendChild(row);
+
+  if(state.manageLoading) card.appendChild(mk("div","sub","불러오는 중…"));
+  if(state.manageErr) card.appendChild(mk("div","sub",state.manageErr));
+  if(state.manageRows){
+    const head = mk("div","sub", `${state.manageKey||state.sessionKey} 기록 ${state.manageRows.length}건`);
+    head.style.margin="14px 0 6px"; card.appendChild(head);
+    state.manageRows.forEach(r=>{
+      const line = mk("div"); line.style.cssText="display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line);";
+      const info = mk("div"); info.style.cssText="flex:1;min-width:0;font-size:13px;";
+      info.textContent = `${r.class_group||"-"} · ${r.student_name} · ${formatRecordValue(r.record_value, r.record_unit)}`;
+      const t = mk("span",null,"  "+new Date(r.created_at).toLocaleString("ko-KR",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"}));
+      t.style.cssText="color:var(--muted2);font-size:11px;"; info.appendChild(t);
+      const b = mk("button","btn btn-ghost btn-sm", state.manageArm===r.id ? "한 번 더 눌러 삭제" : "삭제");
+      if(state.manageArm===r.id) b.style.borderColor="var(--bad)";
+      b.onclick = async ()=>{
+        if(state.manageArm!==r.id){ state.manageArm=r.id; render(); return; }
+        await deleteRecord(r.id);
+      };
+      line.appendChild(info); line.appendChild(b); card.appendChild(line);
+    });
+  }
+  wrap.appendChild(card);
+  return wrap;
+}
+
 async function selectSession(key){
   const wod = buildWodFromSession(key);
   await storeSet("wod:"+todayStr(), wod, true);
+  await saveCurrentSessionKey(key);
   state.sessionKey = key;
   state.wod = wod;
   state.leaderboardCache = null;
