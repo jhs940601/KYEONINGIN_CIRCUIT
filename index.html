@@ -758,8 +758,11 @@ function showToast(msg){
 /* =========================================================
    렌더 - 최상위
 ========================================================= */
+let __lastRenderedTab = null;
 function render(){
   const app = document.getElementById("app");
+  const __keepScroll = (__lastRenderedTab === state.tab) ? (window.scrollY || document.documentElement.scrollTop || 0) : null;
+  __lastRenderedTab = state.tab;
   app.innerHTML = "";
   app.appendChild(renderTopbar());
   if(state.loading){
@@ -783,6 +786,10 @@ function render(){
   }
   if(state.followMode){
     app.appendChild(renderFollowOverlay());
+  }
+  if(__keepScroll !== null && __keepScroll > 0){
+    window.scrollTo(0, __keepScroll);
+    requestAnimationFrame(()=>window.scrollTo(0, __keepScroll));
   }
 }
 
