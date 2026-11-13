@@ -470,9 +470,15 @@ const SESSIONS = {
     notes:{ kneepushup_bag:"20회 (가방 메고 진행)", lateralburpee:"25회 (가방 메고 진행)", highpitch:"25회 (왕복)", twistcore:"30회 (왼·오)" }
   },
   "8차시": {
-    mode:"FORTIME", label:"포타임 · 2인 1조, 합쳐서 수행", partner:true,
-    ids:["jjaem","stepup","kneechestjump","superman"],
-    notes:{ jjaem:"300회 (둘이 합쳐서, 안 하는 사람이 숫자 세어주기)", stepup:"200회 (왕복, 둘이 합쳐서, 숫자 세어주기)", kneechestjump:"200회 (둘이 합쳐서, 숫자 세어주기)", superman:"160회 (둘이 합쳐서, 숫자 세어주기)" }
+    mode:"AMRAP", capMinutes:4, label:"AMRAP 4분 · 최대한 많은 라운드 반복",
+    ids:["armwalk8","plankjack8","jumpsquat8","scissorkick8"],
+    notes:{ armwalk8:"10회", plankjack8:"40회 (왕복 20회)", jumpsquat8:"10회", scissorkick8:"40회 (왕복 20회)" },
+    customEx:{
+      armwalk8:{ name:"암워킹", cautions:[], videoId:null, query:"암워킹 운동 자세" },
+      plankjack8:{ name:"플랭크잭", cautions:[], videoId:null, query:"플랭크잭 운동 자세" },
+      jumpsquat8:{ name:"점프스쿼트", cautions:[], videoId:null, query:"점프스쿼트 운동 자세" },
+      scissorkick8:{ name:"가위차기", cautions:[], videoId:null, query:"가위차기 운동 자세" }
+    }
   },
   "9차시": {
     mode:"AMRAP", capMinutes:10, label:"AMRAP 10분 · 최대한 많은 라운드 반복",
@@ -1797,14 +1803,27 @@ async function loadManageRows(){
   state.manageLoading = false; render();
 }
 async function deleteRecord(id){
+  let ok=false, msg="";
   try{
-    const { data, error } = await sb.from("wod_leaderboard").delete().eq("id",id).select();
-    if(error || !data || !data.length){ showToast("삭제에 실패했어요"); return; }
+    const r1 = await sb.from("wod_leaderboard").delete().eq("id",id).select();
+    if(!r1.error && r1.data && r1.data.length) ok=true;
+    else {
+      if(r1.error) msg = r1.error.message;
+      const r2 = await sb.rpc("delete_wod_record",{ p_id:id });
+      if(!r2.error && Number(r2.data)>0) ok=true;
+      else if(r2.error) msg = r2.error.message;
+    }
+  }catch(e){ console.error(e); msg = String(e && e.message || e); }
+  state.manageArm = null;
+  if(ok){
     state.manageRows = (state.manageRows||[]).filter(r=>r.id!==id);
-    state.manageArm = null;
     state.leaderboardCache = null; state.classLeaderboardCache = null; state.classRawRows = null;
+    state.manageErr = null;
     showToast("기록을 삭제했어요");
-  }catch(e){ console.error(e); showToast("삭제에 실패했어요"); }
+  } else {
+    state.manageErr = "삭제 실패" + (msg ? ": "+msg : " (이미 삭제됐거나 권한 문제) — '기록 불러오기'로 새로고침해 보세요");
+    showToast("삭제에 실패했어요");
+  }
 }
 function renderRecordManager(){
   const wrap = mk("div"); wrap.style.marginTop="28px";
